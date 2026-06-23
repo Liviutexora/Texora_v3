@@ -17,7 +17,7 @@
             <div class="flex items-center gap-2.5">
                 <x-brand-logo :mark-only="true" size="sm" />
                 @unless (config('app.hide_powered_by'))
-                    <span class="text-xs text-gray-400">{{ __('Powered by') }} <span class="font-semibold text-gray-600">{{ config('app.name', 'Slotara') }}</span></span>
+                    <span class="text-xs text-gray-400">{{ __('Powered by') }} <span class="font-semibold text-gray-600">{{ config('app.name', 'Texora') }}</span></span>
                 @endunless
             </div>
             <nav class="flex items-center gap-1">
