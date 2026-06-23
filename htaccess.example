@@ -1,0 +1,64 @@
+# Apache Configuration for Laravel in Subdirectory
+# 
+# This file allows your Laravel application to be accessible from the root directory
+# instead of requiring /public in the URL.
+#
+# INSTRUCTIONS:
+# 
+# IMPORTANT: This file MUST be copied to .htaccess before your first web request!
+# Without .htaccess, Apache will show a directory listing instead of your application.
+#
+# OPTION 1: Auto-generate (Recommended)
+#   Run: php artisan htaccess:generate
+#   This command will auto-detect your subdirectory path and generate .htaccess automatically.
+#   You can also specify the path manually: php artisan htaccess:generate --path="pacific/modular-starter"
+#
+#   NOTE: The .htaccess will also be auto-generated when you first visit /install
+#   (the installer will create it automatically)
+#
+# OPTION 2: Manual Setup
+#   1. Copy this file to .htaccess in your project root
+#   2. Replace "your-subdirectory-path" with your actual subdirectory path
+#      For example: if your app is at http://localhost/pacific/modular-starter/
+#      Replace "your-subdirectory-path" with "pacific/modular-starter"
+#   3. Ensure mod_rewrite is enabled: sudo a2enmod rewrite
+#   4. Restart Apache: sudo systemctl restart apache2
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Disable directory listing for security
+    Options -Indexes
+    
+    # Handle Authorization Header
+    # This allows Laravel to read Authorization headers
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    
+    # Redirect root of subdirectory to public/index.php
+    # Replace "your-subdirectory-path" with your actual path (e.g., "pacific/modular-starter")
+    RewriteCond %{REQUEST_URI} ^/your-subdirectory-path/?$
+    RewriteRule ^$ public/index.php [L]
+    
+    # Redirect all other requests to public directory
+    # Skip if already pointing to public directory
+    RewriteCond %{REQUEST_URI} !^/your-subdirectory-path/public/
+    # Skip if the requested file exists in root (for .htaccess, etc.)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    # Skip if the requested directory exists in root
+    RewriteCond %{REQUEST_FILENAME} !-d
+    # Redirect to public directory
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Alternative Configuration: Point DocumentRoot directly to public directory
+# 
+# If you prefer to point Apache's DocumentRoot directly to the public directory
+# (recommended for production), you can use this simpler configuration:
+#
+# In your Apache virtual host, set:
+#   DocumentRoot /path/to/modular-starter/public
+#
+# Then you don't need this .htaccess file at all, and can use the standard
+# public/.htaccess file that comes with Laravel.
+

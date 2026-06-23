@@ -1,0 +1,123 @@
+Slotara — Multi-Tenant Booking SaaS
+=====================================
+
+This item is sold on CodeCanyon under the Envato Regular and Extended Licenses.
+License details: https://codecanyon.net/licenses/standard
+
+You may not redistribute or resell this item as your own.
+For license questions, contact Envato: https://help.author.envato.com
+
+
+Third-Party Libraries & Licenses
+----------------------------------
+
+The following open-source libraries are included in this package.
+Each is used in accordance with its respective license.
+
+Laravel Framework
+  License : MIT
+  URL     : https://laravel.com
+  (c) Taylor Otwell
+
+Filament
+  License : MIT
+  URL     : https://filamentphp.com
+  (c) Filament team
+
+Livewire
+  License : MIT
+  URL     : https://livewire.laravel.com
+  (c) Caleb Porzio
+
+Alpine.js
+  License : MIT
+  URL     : https://alpinejs.dev
+  (c) Caleb Porzio
+
+TailwindCSS
+  License : MIT
+  URL     : https://tailwindcss.com
+  (c) Tailwind Labs Inc.
+
+Spatie Laravel Permission
+  License : MIT
+  URL     : https://github.com/spatie/laravel-permission
+  (c) Spatie
+
+Spatie Laravel Activity Log
+  License : MIT
+  URL     : https://github.com/spatie/laravel-activitylog
+  (c) Spatie
+
+Spatie Laravel Backup
+  License : MIT
+  URL     : https://github.com/spatie/laravel-backup
+  (c) Spatie
+
+Spatie Laravel Media Library
+  License : MIT
+  URL     : https://github.com/spatie/laravel-medialibrary
+  (c) Spatie
+
+Laravel Socialite
+  License : MIT
+  URL     : https://github.com/laravel/socialite
+  (c) Taylor Otwell
+
+barryvdh/laravel-dompdf
+  License : MIT
+  URL     : https://github.com/barryvdh/laravel-dompdf
+  (c) Barry vd. Heuvel
+
+Filament Shield (bezhansalleh)
+  License : MIT
+  URL     : https://github.com/bezhanSalleh/filament-shield
+  (c) Bezhan Salleh
+
+Intervention Image
+  License : MIT
+  URL     : https://image.intervention.io
+  (c) Oliver Vogel
+
+Pusher PHP Server
+  License : MIT
+  URL     : https://github.com/pusher/pusher-http-php
+  (c) Pusher
+
+laravel/echo
+  License : MIT
+  URL     : https://github.com/laravel/echo
+  (c) Taylor Otwell
+
+pusher-js
+  License : MIT
+  URL     : https://github.com/pusher/pusher-js
+  (c) Pusher
+
+Vite
+  License : MIT
+  URL     : https://vitejs.dev
+  (c) Evan You and Vite contributors
+
+Full license texts for each library are available in the respective
+package directories under /vendor (PHP) and /node_modules (JS).
+
+MIT License (applies to all MIT-licensed packages listed above)
+---------------------------------------------------------------
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

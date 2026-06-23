@@ -1,0 +1,6 @@
+{
+    "version": "1.3.0",
+    "release_date": "2026-06-10",
+    "minimum_php": "8.2",
+    "minimum_laravel": "12.0"
+}

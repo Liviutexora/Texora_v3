@@ -1,0 +1,106 @@
+#!/usr/bin/env php
+<?php
+
+use Illuminate\Foundation\Application;
+use Symfony\Component\Console\Input\ArgvInput;
+
+define('LARAVEL_START', microtime(true));
+
+$basePath = __DIR__;
+$autoloadPath = $basePath . '/vendor/autoload.php';
+
+$envPath = $basePath . '/.env';
+$envExamplePath = $basePath . '/.env.example';
+$installedFile = $basePath . '/.installed';
+
+if (!file_exists($envPath)) {
+    if (file_exists($envExamplePath)) {
+        echo "⚙️  .env file not found. Creating from .env.example...\n";
+        copy($envExamplePath, $envPath);
+
+        // Remove .installed if it exists
+        if (file_exists($installedFile)) {
+            unlink($installedFile);
+        }
+    }
+}
+
+// Check if Composer dependencies are installed
+if (!file_exists($autoloadPath)) {
+    if (file_exists($basePath . '/composer.lock')) {
+        unlink($basePath . '/composer.lock');
+    }
+    
+    echo "⚙️  Dependencies not found. Running composer install...\n";
+    
+    // Change to project root directory before running composer
+    $originalDir = getcwd();
+    chdir($basePath);
+    
+    // Run composer install - let Composer use its default HOME/COMPOSER_HOME
+    // Only set COMPOSER_HOME if system HOME is not available (rare edge case)
+    $command = 'composer install --no-interaction --prefer-dist 2>&1';
+    
+    // Only override COMPOSER_HOME if HOME is not set (unusual but possible in some environments)
+    if (empty(getenv('HOME')) && empty(getenv('COMPOSER_HOME'))) {
+        // Use system temp directory instead of project storage
+        $composerHome = sys_get_temp_dir() . '/.composer-' . md5($basePath);
+        $command = 'COMPOSER_HOME="' . escapeshellarg($composerHome) . '" ' . $command;
+    }
+    
+    exec($command, $composerOutput, $composerReturnCode);
+    
+    // Restore original directory
+    chdir($originalDir);
+    
+    if ($composerReturnCode !== 0) {
+        echo "⚠️  Composer install failed. Please run 'composer install' manually.\n";
+        echo implode("\n", $composerOutput) . "\n";
+    }
+}
+
+// Check if npm dependencies are installed (only run if npm is available, e.g. local dev; skip on servers without Node)
+if (!file_exists($basePath . '/public/build/manifest.json')) {
+    exec('which npm 2>/dev/null', $npmCheck, $npmExists);
+    if ($npmExists === 0) {
+        if (file_exists($basePath . '/package-lock.json')) {
+            unlink($basePath . '/package-lock.json');
+        }
+        echo "⚙️  Building frontend assets...\n";
+        exec('npm install && npm run build 2>&1', $npmOutput, $npmReturnCode);
+        if ($npmReturnCode !== 0 && !empty($npmOutput)) {
+            echo "⚠️  Frontend build failed. Run 'npm install && npm run build' manually if needed.\n";
+        }
+    }
+}
+
+// Register the Composer autoloader...
+require __DIR__.'/vendor/autoload.php';
+
+// Bootstrap Laravel and handle the command...
+/** @var Application $app */
+$app = require_once __DIR__.'/bootstrap/app.php';
+
+// Check if storage link exists, if not create it
+$storageLink = $basePath . '/public/storage';
+$storageTarget = $basePath . '/storage/app/public';
+
+if (!file_exists($storageLink) || !is_link($storageLink)) {
+    // Ensure the target directory exists
+    if (!is_dir($storageTarget)) {
+        mkdir($storageTarget, 0755, true);
+    }
+    
+    // Create the storage link using artisan command
+    echo "⚙️  Storage link not found. Creating storage link...\n";
+    try {
+        $app->make(\Illuminate\Contracts\Console\Kernel::class)->call('storage:link');
+    } catch (\Exception $e) {
+        // Silently fail if we can't create the link (e.g., in production with no write permissions)
+        // The link can be created manually via artisan
+    }
+}
+
+$status = $app->handleCommand(new ArgvInput);
+
+exit($status);

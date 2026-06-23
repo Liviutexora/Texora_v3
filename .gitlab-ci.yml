@@ -1,0 +1,56 @@
+stages:
+  - deploy
+
+deploy_develop:
+  stage: deploy
+  only:
+    - develop
+
+  before_script:
+    - apt-get update -y
+    - apt-get install -y openssh-client rsync
+
+    # Setup SSH
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+
+    # Start SSH Agent
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_ed25519
+
+    # Trust server host
+    - ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+  script:
+    - echo "🚀 Deploying to server..."
+
+    - ssh $SERVER_USER@$SERVER_HOST "
+        cd $DEPLOY_PATH &&
+
+        echo '⚙️ Maintenance mode...' &&
+        php artisan down || true &&
+
+        echo '📌 Resetting repo to origin/develop...' &&
+        git fetch origin develop &&
+        git reset --hard origin/develop &&
+        git clean -fd &&
+
+        echo '📦 Installing dependencies...' &&
+        composer install --no-dev --optimize-autoloader &&
+
+        echo '🗄 Running migrations...' &&
+        php artisan migrate --force &&
+
+        echo '⚡ Caching config/routes/views...' &&
+        php artisan config:cache &&
+        php artisan route:cache &&
+        php artisan view:cache &&
+
+        echo '✅ App is live again...' &&
+        php artisan up
+      "
+
+  environment:
+    name: develop
+    url: https://demo.slotara.app

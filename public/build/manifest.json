@@ -1,0 +1,65 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-gVxLnVFY.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/css/fb-classes.css": {
+    "file": "assets/fb-classes-DGLA_W4G.css",
+    "src": "resources/css/fb-classes.css",
+    "isEntry": true
+  },
+  "resources/css/tenant-panel.css": {
+    "file": "assets/tenant-panel-gaF8b453.css",
+    "src": "resources/css/tenant-panel.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DkEqo8N5.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/booking-theme.js": {
+    "file": "assets/booking-theme-DYbGm7m8.js",
+    "name": "booking-theme",
+    "src": "resources/js/booking-theme.js",
+    "isEntry": true
+  },
+  "resources/js/demo-mode-banner.js": {
+    "file": "assets/demo-mode-banner-DQXDzhR5.js",
+    "name": "demo-mode-banner",
+    "src": "resources/js/demo-mode-banner.js",
+    "isEntry": true
+  },
+  "resources/js/front-nav.js": {
+    "file": "assets/front-nav-CkLKFQ2J.js",
+    "name": "front-nav",
+    "src": "resources/js/front-nav.js",
+    "isEntry": true
+  },
+  "resources/js/html-preview.js": {
+    "file": "assets/html-preview-9aBXY1ur.js",
+    "name": "html-preview",
+    "src": "resources/js/html-preview.js",
+    "isEntry": true
+  },
+  "resources/js/login-demo-panel.js": {
+    "file": "assets/login-demo-panel-DLS6S-yA.js",
+    "name": "login-demo-panel",
+    "src": "resources/js/login-demo-panel.js",
+    "isEntry": true
+  },
+  "resources/js/my-bookings.js": {
+    "file": "assets/my-bookings-CWDN2aUL.js",
+    "name": "my-bookings",
+    "src": "resources/js/my-bookings.js",
+    "isEntry": true
+  },
+  "resources/js/welcome.js": {
+    "file": "assets/welcome-B5uhTRUm.js",
+    "name": "welcome",
+    "src": "resources/js/welcome.js",
+    "isEntry": true
+  }
+}

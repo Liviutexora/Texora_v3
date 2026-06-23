@@ -1,0 +1,1 @@
+function d(t){t.preventDefault();var e=document.getElementById("tenant-slug").value.trim(),n=document.getElementById("slug-error");if(!e){n.classList.remove("hidden");return}n.classList.add("hidden"),window.location.href="/"+encodeURIComponent(e)}window.handleSlugSearch=d;
