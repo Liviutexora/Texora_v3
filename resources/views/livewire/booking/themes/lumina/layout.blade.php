@@ -153,7 +153,7 @@
 
             {{-- Language picker --}}
             @php
-                $langMeta = ['en'=>['flag'=>'🇬🇧','label'=>'EN'],'es'=>['flag'=>'🇪🇸','label'=>'ES'],'de'=>['flag'=>'🇩🇪','label'=>'DE'],'fr'=>['flag'=>'🇫🇷','label'=>'FR'],'ar'=>['flag'=>'🇸🇦','label'=>'AR'],'ru'=>['flag'=>'🇷🇺','label'=>'RU'],'zh'=>['flag'=>'🇨🇳','label'=>'ZH'],'hi'=>['flag'=>'🇮🇳','label'=>'HI']];
+                $langMeta = ['en'=>['flag'=>'🇬🇧','label'=>'EN'],'ro'=>['flag'=>'🇷🇴','label'=>'RO'],'es'=>['flag'=>'🇪🇸','label'=>'ES'],'de'=>['flag'=>'🇩🇪','label'=>'DE'],'fr'=>['flag'=>'🇫🇷','label'=>'FR'],'ar'=>['flag'=>'🇸🇦','label'=>'AR'],'ru'=>['flag'=>'🇷🇺','label'=>'RU'],'zh'=>['flag'=>'🇨🇳','label'=>'ZH'],'hi'=>['flag'=>'🇮🇳','label'=>'HI']];
                 $enabledLocales = \App\Http\Middleware\SetLocale::enabledLocales();
                 $currentLocale  = app()->getLocale();
             @endphp

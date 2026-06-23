@@ -43,6 +43,7 @@
             @php
                 $langMeta = [
                     'en' => ['flag' => '🇬🇧', 'label' => 'EN'],
+                    'ro' => ['flag' => '🇷🇴', 'label' => 'RO'],
                     'es' => ['flag' => '🇪🇸', 'label' => 'ES'],
                     'de' => ['flag' => '🇩🇪', 'label' => 'DE'],
                     'fr' => ['flag' => '🇫🇷', 'label' => 'FR'],

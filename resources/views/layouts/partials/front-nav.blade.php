@@ -34,9 +34,9 @@
 
         {{-- Language Switcher --}}
         @php
-            $allLocaleLabels = ['en' => 'EN', 'es' => 'ES', 'de' => 'DE', 'fr' => 'FR', 'ar' => 'AR', 'ru' => 'RU', 'zh' => 'ZH', 'hi' => 'HI'];
+            $allLocaleLabels = ['en' => 'EN', 'ro' => 'RO', 'es' => 'ES', 'de' => 'DE', 'fr' => 'FR', 'ar' => 'AR', 'ru' => 'RU', 'zh' => 'ZH', 'hi' => 'HI'];
             $localeLabels = array_intersect_key($allLocaleLabels, array_flip(\App\Http\Middleware\SetLocale::enabledLocales()));
-            $languageNames = ['EN' => __('English'), 'ES' => __('Spanish'), 'DE' => __('German'), 'FR' => __('French'), 'AR' => __('Arabic'), 'RU' => __('Russian'), 'ZH' => __('Chinese'), 'HI' => __('Hindi')];
+            $languageNames = ['EN' => __('English'), 'RO' => __('Romanian'), 'ES' => __('Spanish'), 'DE' => __('German'), 'FR' => __('French'), 'AR' => __('Arabic'), 'RU' => __('Russian'), 'ZH' => __('Chinese'), 'HI' => __('Hindi')];
             $currentLocale = app()->getLocale();
         @endphp
         <div class="relative" id="sl-lang-menu">

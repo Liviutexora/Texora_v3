@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 class SetLocale
 {
     // All languages that have translation files in lang/
-    public const SUPPORTED_LOCALES = ['en', 'es', 'de', 'fr', 'ar', 'ru', 'zh', 'hi'];
+    public const SUPPORTED_LOCALES = ['en', 'ro', 'es', 'de', 'fr', 'ar', 'ru', 'zh', 'hi'];
 
     public static function enabledLocales(): array
     {

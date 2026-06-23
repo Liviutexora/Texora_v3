@@ -541,6 +541,7 @@ class Settings extends Page implements HasForms
                                             ->label(__('Enabled Languages'))
                                             ->options([
                                                 'en' => '🇬🇧 English',
+                                                'ro' => '🇷🇴 Romanian (Română)',
                                                 'es' => '🇪🇸 Spanish (Español)',
                                                 'de' => '🇩🇪 German (Deutsch)',
                                                 'fr' => '🇫🇷 French (Français)',
@@ -548,6 +549,7 @@ class Settings extends Page implements HasForms
                                                 'ru' => '🇷🇺 Russian (Русский)',
                                                 'zh' => '🇨🇳 Chinese (中文)',
                                                 'hi' => '🇮🇳 Hindi (हिन्दी)',
+
                                             ])
                                             ->columns(2)
                                             ->rule(fn () => function (string $attribute, $value, $fail) {

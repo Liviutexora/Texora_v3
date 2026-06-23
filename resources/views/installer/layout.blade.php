@@ -10,9 +10,9 @@
 
     {{-- Language switcher (top-right) --}}
     @php
-        $allLocaleLabels = ['en' => 'EN', 'es' => 'ES', 'de' => 'DE', 'fr' => 'FR', 'ar' => 'AR', 'ru' => 'RU', 'zh' => 'ZH', 'hi' => 'HI'];
+        $allLocaleLabels = ['en' => 'EN', 'ro' => 'RO', 'es' => 'ES', 'de' => 'DE', 'fr' => 'FR', 'ar' => 'AR', 'ru' => 'RU', 'zh' => 'ZH', 'hi' => 'HI'];
         $localeLabels    = array_intersect_key($allLocaleLabels, array_flip(\App\Http\Middleware\SetLocale::enabledLocales()));
-        $languageNames   = ['EN' => 'English', 'ES' => 'Español', 'DE' => 'Deutsch', 'FR' => 'Français', 'AR' => 'العربية', 'RU' => 'Русский', 'ZH' => '中文', 'HI' => 'हिन्दी'];
+        $languageNames   = ['EN' => 'English', 'RO' => 'Română', 'ES' => 'Español', 'DE' => 'Deutsch', 'FR' => 'Français', 'AR' => 'العربية', 'RU' => 'Русский', 'ZH' => '中文', 'HI' => 'हिन्दी'];
         $currentLocale   = app()->getLocale();
     @endphp
     <div class="fixed top-4 right-4 z-50">
