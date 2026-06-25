@@ -129,7 +129,7 @@ class ClientResource extends Resource
                     JOIN services s ON sr2.service_id = s.id
                     WHERE sr2.email = slot_reservations.email
                       AND sr2.tenant_id = slot_reservations.tenant_id
-                    GROUP BY sr2.service_id
+                                        GROUP BY sr2.service_id, s.name
                     ORDER BY COUNT(*) DESC
                     LIMIT 1
                 ) as favourite_service
