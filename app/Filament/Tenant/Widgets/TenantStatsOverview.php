@@ -128,9 +128,14 @@ class TenantStatsOverview extends BaseWidget
                 ->color('warning'),
 
             Stat::make(__('Total Clients'), $totalClients)
-                ->description(sprintf(__('+%d new this month'), $newClientsThisMonth))
+                ->description(__('Clienți unici cu programări'))
                 ->descriptionIcon('heroicon-m-users')
                 ->color('info'),
+
+            Stat::make(__('Reveniri clienți'), 0)
+                ->description(__('0 astăzi • 0 în următoarele 7 zile'))
+                ->descriptionIcon('heroicon-m-arrow-path')
+                ->color('primary'),
         ];
     }
 }

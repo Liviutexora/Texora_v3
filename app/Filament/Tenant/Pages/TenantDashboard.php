@@ -35,7 +35,7 @@ class TenantDashboard extends Dashboard
     {
         return [
             QuickActionsWidget::class,       // sort 0 — action buttons at top
-            TenantStatsOverview::class,      // sort 1 — 5 stat cards
+            TenantStatsOverview::class,      // sort 1 — 6 stat cards
             TodayScheduleWidget::class,      // sort 2 — today's appointments
             BookingRateStatsWidget::class,   // sort 2 — health rates
             BookingsTrendChart::class,       // sort 3 — 30d/3m/6m trend
