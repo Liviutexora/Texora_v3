@@ -3,7 +3,8 @@
 namespace App\Filament\Tenant\Widgets;
 
 use App\Filament\Tenant\Resources\ClientResource;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
@@ -32,12 +33,26 @@ class CustomerReturnsTableWidget extends BaseWidget
             };
         }, $table->getColumns());
 
-        $columns[] = TextColumn::make('actions_placeholder')
-            ->label(__('Acțiuni'))
-            ->state(static fn () => __('În curând'));
-
         return $table
             ->columns($columns)
-            ->actions([]);
+            ->actionsColumnLabel(__('Acțiuni'))
+            ->actions([
+                ActionGroup::make([
+                    Action::make('send_sms')
+                        ->label(__('Trimite SMS'))
+                        ->action(static fn () => null),
+                    Action::make('send_email')
+                        ->label(__('Trimite e-mail'))
+                        ->action(static fn () => null),
+                    Action::make('mark_called')
+                        ->label(__('Marchează ca apelat'))
+                        ->action(static fn () => null),
+                    Action::make('reschedule')
+                        ->label(__('Reprogramează'))
+                        ->action(static fn () => null),
+                ])
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->iconButton(),
+            ]);
     }
 }
