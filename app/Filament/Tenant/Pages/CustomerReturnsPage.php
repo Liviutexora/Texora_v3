@@ -21,7 +21,7 @@ class CustomerReturnsPage extends Page
 
     public static function getNavigationLabel(): string
     {
-        return __('Reveniri clienți');
+        return __('Reminder clienți');
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -31,6 +31,6 @@ class CustomerReturnsPage extends Page
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
     {
-        return __('Reveniri clienți');
+        return __('Reminder clienți');
     }
 }
