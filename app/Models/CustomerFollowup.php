@@ -15,6 +15,7 @@ class CustomerFollowup extends Model
         'service_id',
         'provider_id',
         'type',
+        'followup_interval_days',
         'channel',
         'status',
         'priority',
@@ -29,6 +30,7 @@ class CustomerFollowup extends Model
     protected function casts(): array
     {
         return [
+            'followup_interval_days' => 'integer',
             'scheduled_at' => 'datetime',
             'next_followup_at' => 'datetime',
             'last_action_at' => 'datetime',

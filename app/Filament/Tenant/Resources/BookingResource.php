@@ -557,6 +557,7 @@ class BookingResource extends Resource
                                     'service_id' => $record->service_id,
                                     'provider_id' => $record->provider_id,
                                     'type' => 'manual',
+                                    'followup_interval_days' => $days,
                                     'channel' => 'pending',
                                     'status' => 'pending',
                                     'priority' => 'normal',

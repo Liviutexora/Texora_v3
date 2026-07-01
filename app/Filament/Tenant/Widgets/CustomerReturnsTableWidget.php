@@ -45,9 +45,51 @@ class CustomerReturnsTableWidget extends BaseWidget
                     ->label(__('Phone'))
                     ->searchable(),
 
-                TextColumn::make('total_bookings')
+                TextColumn::make('reminder_badge')
                     ->label(__('Reminder'))
-                    ->sortable(),
+                    ->state(function ($record): string {
+                        if (! $record->next_followup_at) {
+                            return '—';
+                        }
+
+                        $days = today()->diffInDays(Carbon::parse($record->next_followup_at)->startOfDay(), false);
+
+                        if ($days === 0) {
+                            return __('Astăzi');
+                        }
+
+                        if ($days > 0) {
+                            return '−' . $days . ' ' . ($days === 1 ? __('zi') : __('zile'));
+                        }
+
+                        $overdue = abs($days);
+
+                        return '+' . $overdue . ' ' . ($overdue === 1 ? __('zi') : __('zile'));
+                    })
+                    ->badge()
+                    ->alignCenter()
+                    ->extraAttributes(['class' => 'text-center [&_.fi-badge]:text-base [&_.fi-badge]:px-3.5'])
+                    ->color(function ($record): string {
+                        if (! $record->next_followup_at) {
+                            return 'gray';
+                        }
+
+                        $days = today()->diffInDays(Carbon::parse($record->next_followup_at)->startOfDay(), false);
+
+                        if ($days <= 0) {
+                            return 'danger';
+                        }
+
+                        if ($days === 1) {
+                            return 'orange';
+                        }
+
+                        if ($days <= 7) {
+                            return 'warning';
+                        }
+
+                        return 'success';
+                    }),
 
                 TextColumn::make('last_booking_date')
                     ->label(__('Last Visit'))
@@ -111,9 +153,11 @@ class CustomerReturnsTableWidget extends BaseWidget
             ->select([
                 'customer_followups.id',
                 'customer_followups.service_id',
+                'customer_followups.next_followup_at',
                 'sr.name as name',
                 'sr.email as email',
                 'sr.phone as phone',
+                'sr.date as last_booking_date',
                 DB::raw("CASE customer_followups.status
                     WHEN 'called' THEN 'Apelat'
                     WHEN 'email_sent' THEN 'E-mail trimis'
@@ -132,16 +176,6 @@ class CustomerReturnsTableWidget extends BaseWidget
                         ->selectRaw('COUNT(*)');
                 },
                 'total_bookings'
-            )
-            ->selectSub(
-                function (QueryBuilder $query): void {
-                    $query->from('slot_reservations as sr3')
-                        ->join('customer_followups as cf3', 'cf3.slot_reservation_id', '=', 'sr3.id')
-                        ->whereColumn('cf3.tenant_id', 'customer_followups.tenant_id')
-                        ->whereColumn('sr3.email', 'sr.email')
-                        ->selectRaw('MAX(sr3.date)');
-                },
-                'last_booking_date'
             )
             ->selectSub(
                 function (QueryBuilder $query): void {
