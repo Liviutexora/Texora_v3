@@ -8,6 +8,7 @@ use App\Jobs\SendBookingCancellationEmail;
 use App\Jobs\SendBookingCancellationSms;
 use App\Jobs\SendBookingRescheduledEmail;
 use App\Jobs\SendBookingRescheduledSms;
+use App\Models\CustomerFollowup;
 use App\Models\Provider;
 use App\Models\SlotReservation;
 use App\Services\BookingPaymentService;
@@ -484,8 +485,7 @@ class BookingResource extends Resource
                                 Checkbox::make('create_followup_reminder')
                                     ->label(__('Create follow-up reminder'))
                                     ->default(false)
-                                    ->live()
-                                    ->dehydrated(false),
+                                    ->live(),
 
                                 Radio::make('reminder_source')
                                     ->label(__('Reminder source'))
@@ -495,7 +495,6 @@ class BookingResource extends Resource
                                     ])
                                     ->default('service_recommendation')
                                     ->live()
-                                    ->dehydrated(false)
                                     ->visible(fn (Get $get): bool => (bool) $get('create_followup_reminder')),
 
                                 Placeholder::make('recommended_followup')
@@ -513,7 +512,6 @@ class BookingResource extends Resource
                                     ->minValue(1)
                                     ->maxValue(365)
                                     ->default(30)
-                                    ->dehydrated(false)
                                     ->visible(fn (Get $get): bool =>
                                         (bool) $get('create_followup_reminder')
                                         && $get('reminder_source') === 'custom'
@@ -537,6 +535,40 @@ class BookingResource extends Resource
                     ->action(function ($record, array $data) {
                         $wasNotCancelled = $record->status !== 'cancelled';
                         $record->update(['status' => $data['status']]);
+
+                        if (
+                            ($data['status'] ?? null) === 'completed'
+                            && ($data['create_followup_reminder'] ?? false)
+                            && ($data['reminder_source'] ?? null) === 'custom'
+                            && filled($data['followup_after_days'] ?? null)
+                        ) {
+                            $days = (int) $data['followup_after_days'];
+
+                            if ($days > 0 && ! CustomerFollowup::query()
+                                ->where('slot_reservation_id', $record->id)
+                                ->whereNull('completed_at')
+                                ->exists()) {
+                                $scheduledAt = Carbon::parse($record->date)->addDays($days);
+
+                                CustomerFollowup::query()->create([
+                                    'tenant_id' => $record->tenant_id,
+                                    'slot_reservation_id' => $record->id,
+                                    'user_id' => $record->user_id,
+                                    'service_id' => $record->service_id,
+                                    'provider_id' => $record->provider_id,
+                                    'type' => 'manual',
+                                    'channel' => 'pending',
+                                    'status' => 'pending',
+                                    'priority' => 'normal',
+                                    'scheduled_at' => $scheduledAt,
+                                    'next_followup_at' => $scheduledAt,
+                                    'last_action' => null,
+                                    'last_action_at' => null,
+                                    'completed_at' => null,
+                                    'token' => (string) Str::uuid(),
+                                ]);
+                            }
+                        }
 
                         if ($data['status'] === 'cancelled' && $wasNotCancelled) {
                             SendBookingCancellationEmail::dispatch($record)->afterCommit();
