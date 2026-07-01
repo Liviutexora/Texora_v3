@@ -28,6 +28,8 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\Service;
 use App\Models\User;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
@@ -474,7 +476,62 @@ class BookingResource extends Resource
                                 'cancelled' => __('Cancelled'),
                                 'no_show'   => __('No Show'),
                             ])
-                            ->required(),
+                            ->required()
+                            ->live(),
+
+                        Section::make(__('Customer Follow-up'))
+                            ->schema([
+                                Checkbox::make('create_followup_reminder')
+                                    ->label(__('Create follow-up reminder'))
+                                    ->default(false)
+                                    ->live()
+                                    ->dehydrated(false),
+
+                                Radio::make('reminder_source')
+                                    ->label(__('Reminder source'))
+                                    ->options([
+                                        'service_recommendation' => __('Use service recommendation'),
+                                        'custom' => __('Custom reminder'),
+                                    ])
+                                    ->default('service_recommendation')
+                                    ->live()
+                                    ->dehydrated(false)
+                                    ->visible(fn (Get $get): bool => (bool) $get('create_followup_reminder')),
+
+                                Placeholder::make('recommended_followup')
+                                    ->label(__('Recommended follow-up'))
+                                    ->content(__('30 days (service setting)'))
+                                    ->dehydrated(false)
+                                    ->visible(fn (Get $get): bool =>
+                                        (bool) $get('create_followup_reminder')
+                                        && $get('reminder_source') === 'service_recommendation'
+                                    ),
+
+                                TextInput::make('followup_after_days')
+                                    ->label(__('Follow-up after (days)'))
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(365)
+                                    ->default(30)
+                                    ->dehydrated(false)
+                                    ->visible(fn (Get $get): bool =>
+                                        (bool) $get('create_followup_reminder')
+                                        && $get('reminder_source') === 'custom'
+                                    ),
+
+                                CheckboxList::make('reminder_channel')
+                                    ->label(__('Reminder channel'))
+                                    ->options([
+                                        'sms' => __('SMS'),
+                                        'email' => __('Email'),
+                                    ])
+                                    ->default(['sms', 'email'])
+                                    ->columns(2)
+                                    ->dehydrated(false)
+                                    ->visible(fn (Get $get): bool => (bool) $get('create_followup_reminder')),
+                            ])
+                            ->columns(1)
+                            ->visible(fn (Get $get): bool => $get('status') === 'completed'),
                     ])
                     ->fillForm(fn ($record) => ['status' => $record->status])
                     ->action(function ($record, array $data) {
