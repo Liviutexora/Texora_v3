@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerReturnsTableWidget extends BaseWidget
 {
+    private const FOLLOWUP_RETRY_DAYS = 3;
+
     protected int | string | array $columnSpan = 'full';
 
     protected static ?string $heading = null;
@@ -122,16 +124,51 @@ class CustomerReturnsTableWidget extends BaseWidget
                 ActionGroup::make([
                     Action::make('send_sms')
                         ->label(__('Trimite SMS'))
-                        ->action(static fn () => null),
+                        ->action(fn ($record) => $this->applyFollowupAction(
+                            recordId: (int) $record->id,
+                            status: 'sms_sent',
+                            lastAction: 'sms_sent',
+                            historyChannel: 'sms',
+                        )),
                     Action::make('send_email')
-                        ->label(__('Trimite e-mail'))
-                        ->action(static fn () => null),
+                        ->label(__('Trimite Email'))
+                        ->action(fn ($record) => $this->applyFollowupAction(
+                            recordId: (int) $record->id,
+                            status: 'email_sent',
+                            lastAction: 'email_sent',
+                            historyChannel: 'email',
+                        )),
                     Action::make('mark_called')
                         ->label(__('Marchează ca apelat'))
+                        ->action(fn ($record) => $this->applyFollowupAction(
+                            recordId: (int) $record->id,
+                            status: 'called',
+                            lastAction: 'called',
+                            historyChannel: 'phone',
+                        )),
+                    Action::make('action_divider')
+                        ->label('-------------------------')
+                        ->disabled()
+                        ->color('gray')
                         ->action(static fn () => null),
-                    Action::make('reschedule')
-                        ->label(__('Reprogramează'))
-                        ->action(static fn () => null),
+                    Action::make('booking_completed')
+                        ->label(__('Programare realizată'))
+                        ->action(fn ($record) => $this->applyFollowupAction(
+                            recordId: (int) $record->id,
+                            status: 'completed',
+                            lastAction: 'booking_completed',
+                            historyChannel: 'manual',
+                            closeWorkflow: true,
+                        )),
+                    Action::make('client_inactive')
+                        ->label(__('Client inactiv'))
+                        ->action(fn ($record) => $this->applyFollowupAction(
+                            recordId: (int) $record->id,
+                            status: 'inactive',
+                            lastAction: 'client_inactive',
+                            historyChannel: 'manual',
+                            closeWorkflow: true,
+                        )),
                 ])
                     ->icon('heroicon-m-ellipsis-vertical')
                     ->iconButton(),
@@ -148,6 +185,7 @@ class CustomerReturnsTableWidget extends BaseWidget
 
         return CustomerFollowup::query()
             ->where('customer_followups.tenant_id', $tenantId)
+            ->whereNull('customer_followups.completed_at')
             ->join('slot_reservations as sr', 'sr.id', '=', 'customer_followups.slot_reservation_id')
             ->whereNotNull('sr.email')
             ->select([
@@ -191,5 +229,53 @@ class CustomerReturnsTableWidget extends BaseWidget
                 },
                 'favourite_service'
             );
+    }
+
+    private function applyFollowupAction(
+        int $recordId,
+        string $status,
+        string $lastAction,
+        string $historyChannel,
+        bool $closeWorkflow = false,
+    ): void {
+        $tenantId = TenantContext::id();
+
+        if (! $tenantId) {
+            return;
+        }
+
+        $followup = CustomerFollowup::query()
+            ->whereKey($recordId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (! $followup) {
+            return;
+        }
+
+        $timestamp = now();
+        $updateData = [
+            'status' => $status,
+            'last_action' => $lastAction,
+            'last_action_at' => $timestamp,
+        ];
+
+        if ($closeWorkflow) {
+            $updateData['completed_at'] = $timestamp;
+        } else {
+            $updateData['next_followup_at'] = $timestamp->copy()->addDays(self::FOLLOWUP_RETRY_DAYS);
+        }
+
+        DB::transaction(function () use ($followup, $updateData, $lastAction, $historyChannel, $timestamp): void {
+            $followup->update($updateData);
+
+            $followup->history()->create([
+                'action' => $lastAction,
+                'channel' => $historyChannel,
+                'notes' => null,
+                'created_by' => auth()->id(),
+                'created_at' => $timestamp,
+            ]);
+        });
     }
 }

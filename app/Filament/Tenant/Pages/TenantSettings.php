@@ -3,6 +3,7 @@
 namespace App\Filament\Tenant\Pages;
 
 use App\Models\Tenant;
+use App\Support\LocalisationOptions;
 use App\Support\TenantContext;
 use Filament\Actions\Action;
 use Filament\Forms\Components\ColorPicker;
@@ -128,15 +129,8 @@ class TenantSettings extends Page implements HasForms
 
                             Select::make('currency')
                                 ->label(__('Currency'))
-                                ->options([
-                                    'INR' => 'INR — Indian Rupee',
-                                    'USD' => 'USD — US Dollar',
-                                    'GBP' => 'GBP — British Pound',
-                                    'EUR' => 'EUR — Euro',
-                                    'AED' => 'AED — UAE Dirham',
-                                    'SGD' => 'SGD — Singapore Dollar',
-                                    'AUD' => 'AUD — Australian Dollar',
-                                ])
+                                ->options(fn () => LocalisationOptions::currencies())
+                                ->searchable()
                                 ->required(),
 
                             Select::make('locale')
