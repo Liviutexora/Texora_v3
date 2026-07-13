@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SubscriptionCurrency;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -68,22 +69,23 @@ class SubscriptionPlan extends Model
         return $p !== null ? (float) $p : (float) ($this->price ?? 0);
     }
 
-    /** True if this plan is free (all prices are $0 or no prices defined). */
+    /** True if this plan is free (all prices are zero or no prices defined). */
     public function isFree(): bool
     {
         return $this->lowestPrice() === 0.0;
     }
 
-    /** Display string: "$29 / mo · $278 / yr" */
+    /** Display string: "29 / mo · 278 / yr" with configured currency prefix. */
     public function priceDisplay(): string
     {
+        $currency = SubscriptionCurrency::symbol() . ' ';
         $prices = $this->activePrices()->get();
 
         if ($prices->isEmpty()) {
-            return $this->price ? '$' . number_format((float) $this->price, 0) : 'Free';
+            return $this->price ? $currency . number_format((float) $this->price, 0) : 'Free';
         }
 
-        return $prices->map(fn ($p) => '$' . number_format((float) $p->price, 0) . ' / ' . $p->intervalShort())
+        return $prices->map(fn ($p) => $currency . number_format((float) $p->price, 0) . ' / ' . $p->intervalShort())
             ->implode(' · ');
     }
 }

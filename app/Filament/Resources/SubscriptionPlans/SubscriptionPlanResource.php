@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SubscriptionPlans;
 use App\Filament\Resources\SubscriptionPlans\Pages;
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanPrice;
+use App\Support\SubscriptionCurrency;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -133,7 +134,7 @@ class SubscriptionPlanResource extends Resource
                                     ->label(__('Price'))
                                     ->numeric()
                                     ->minValue(0)
-                                    ->prefix('$')
+                                    ->prefix(fn () => SubscriptionCurrency::symbol() . ' ')
                                     ->required()
                                     ->helperText(__('Full price for this cycle'))
                                     ->columnSpan(1),
@@ -193,16 +194,17 @@ class SubscriptionPlanResource extends Resource
                     ->sortable()
                     ->description(fn ($record) => $record->slug),
 
-                // Show all active prices inline: "$29/mo · $278/yr"
+                // Show all active prices inline with configured currency.
                 TextColumn::make('prices_summary')
                     ->label(__('Pricing'))
                     ->getStateUsing(function (SubscriptionPlan $record): string {
+                        $currency = SubscriptionCurrency::symbol() . ' ';
                         $prices = $record->activePrices()->get();
                         if ($prices->isEmpty()) {
-                            return $record->price ? '$' . number_format((float) $record->price, 0) : 'Free';
+                            return $record->price ? $currency . number_format((float) $record->price, 0) : 'Free';
                         }
                         return $prices->map(fn ($p) =>
-                            '$' . number_format((float) $p->price, 0) . '/' . $p->intervalShort()
+                            $currency . number_format((float) $p->price, 0) . '/' . $p->intervalShort()
                         )->implode(' · ');
                     }),
 

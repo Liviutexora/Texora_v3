@@ -440,7 +440,7 @@ class Settings extends Page implements HasForms
                                         Textarea::make('test_email_message')
                                             ->label(__('Message'))
                                             ->rows(2)
-                                            ->default('This is a test email from Slotara.'),
+                                            ->default('This is a test email from Texora.'),
 
                                         Action::make('sendTestEmail')
                                             ->label(__('Send Test Email'))

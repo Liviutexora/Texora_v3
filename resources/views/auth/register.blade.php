@@ -226,6 +226,7 @@
             $firstPlan       = $plans->first();
             $firstPlanPrice  = $firstPlan?->activePrices->first();
             $firstPlanIsFree = ! $firstPlanPrice || (float) $firstPlanPrice->price === 0.0;
+            $currencySymbol  = \App\Support\SubscriptionCurrency::symbol();
 
             $plansJs = $plans->mapWithKeys(function ($p) use ($extractFeatures) {
                 $prices = $p->activePrices->map(fn ($pr) => [
@@ -278,7 +279,7 @@
                             @if($firstPlanIsFree)
                                 Free
                             @else
-                                ${{ (int) ($firstPlanPrice?->price ?? 0) }}
+                                {{ $currencySymbol }} {{ (int) ($firstPlanPrice?->price ?? 0) }}
                             @endif
                         </span>
                         @if(! $firstPlanIsFree && $firstPlanPrice)
@@ -426,7 +427,7 @@
                         @if($firstPlanIsFree)
                             {{ __('Free forever — no credit card required.') }}
                         @elseif($firstPlanPrice)
-                            <strong id="cta-price">${{ (int) $firstPlanPrice->price }}/{{ $firstPlanPrice->intervalShort() }}</strong> {{ __('Billed :cycle. Cancel anytime.', ['cycle' => strtolower($firstPlanPrice->cycleLabel())]) }}
+                            <strong id="cta-price">{{ $currencySymbol }} {{ (int) $firstPlanPrice->price }}/{{ $firstPlanPrice->intervalShort() }}</strong> {{ __('Billed :cycle. Cancel anytime.', ['cycle' => strtolower($firstPlanPrice->cycleLabel())]) }}
                         @endif
                     </p>
 
@@ -449,6 +450,7 @@
 
     var currentPlanId = {{ $firstPlan?->id ?? 'null' }};
     var currentCycle  = '{{ $firstPlanPrice?->billing_cycle ?? 'monthly' }}';
+    var CURRENCY_SYMBOL = @json($currencySymbol);
 
     /* ── Helpers ─────────────────────────────────────────────────────── */
 
@@ -473,7 +475,7 @@
             document.getElementById('price-period').textContent = '';
             document.getElementById('price-note').textContent   = @json(__('No credit card required'));
         } else {
-            document.getElementById('price-amount').textContent = '$' + Math.round(priceEntry.price);
+            document.getElementById('price-amount').textContent = CURRENCY_SYMBOL + ' ' + Math.round(priceEntry.price);
             document.getElementById('price-period').textContent = '/' + priceEntry.interval_label;
             document.getElementById('price-note').textContent   = @json(__('Billed')) + ' ' + priceEntry.cycle_label.toLowerCase() + ' · ' + @json(__('cancel anytime'));
         }
@@ -505,7 +507,7 @@
             };
             var _cancelAnytime = @json(__('Cancel anytime.'));
             document.getElementById('trial-note').innerHTML =
-                '<strong>$' + Math.round(priceEntry.price) + '/' + priceEntry.interval_short + '</strong> '
+                '<strong>' + CURRENCY_SYMBOL + ' ' + Math.round(priceEntry.price) + '/' + priceEntry.interval_short + '</strong> '
                 + (_billedLabels[priceEntry.billing_cycle] || _billedLabels.monthly) + '. ' + _cancelAnytime;
         }
     }

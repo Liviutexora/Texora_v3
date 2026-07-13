@@ -1,6 +1,7 @@
 @php
     $tenant = \App\Support\TenantContext::current();
     if (! $tenant) { return; }
+    $currencySymbol = \App\Support\SubscriptionCurrency::symbol();
 
     $plan     = $tenant->plan;
     $isFree   = ! $plan || $plan->isFree();
@@ -17,7 +18,7 @@
                 'weekly'  => 'wk',
                 default   => 'mo',
             };
-            $displayPrice = '$' . number_format((float) $price->price, 0) . '/' . $cycle;
+            $displayPrice = $currencySymbol . ' ' . number_format((float) $price->price, 0) . '/' . $cycle;
         }
     }
 

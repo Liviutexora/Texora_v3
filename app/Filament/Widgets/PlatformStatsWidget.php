@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\SlotReservation;
 use App\Models\Tenant;
+use App\Support\SubscriptionCurrency;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -13,6 +14,8 @@ class PlatformStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        $currency = SubscriptionCurrency::symbol() . ' ';
+
         // Active = paying (stripe active) or non-Stripe active tenants
         $activeTenants = Tenant::where('status', 'active')
             ->where(function ($q) {
@@ -67,7 +70,7 @@ class PlatformStatsWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-building-storefront')
                 ->color('success'),
 
-            Stat::make('MRR', '$' . number_format($mrr, 2))
+            Stat::make('MRR', $currency . number_format($mrr, 2))
                 ->description(__('Monthly recurring revenue'))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('info'),

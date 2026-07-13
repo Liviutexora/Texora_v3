@@ -4,6 +4,7 @@
     $billing  = app(\App\Services\BillingService::class);
     $plan     = $tenant?->plan;
     $status   = $tenant?->stripe_subscription_status;
+    $currencySymbol = \App\Support\SubscriptionCurrency::symbol();
 
     $trialEndsAt = $tenant ? $billing->trialEndsAt($tenant) : null;
     $trialDays   = $trialEndsAt ? max(1, (int) now()->diffInDays($trialEndsAt, false) + 1) : null;
@@ -150,7 +151,7 @@
                             >
                                 <span x-show="!loading">
                                     {{ $pp['name'] }} — {{ $price['billing_cycle'] === 'yearly' ? 'Annually' : ($price['billing_cycle'] === 'weekly' ? 'Weekly' : 'Monthly') }}
-                                    &nbsp;${{ number_format($price['price'], 0) }}/{{ $price['billing_cycle'] === 'yearly' ? 'yr' : ($price['billing_cycle'] === 'weekly' ? 'wk' : 'mo') }}
+                                    &nbsp;{{ $currencySymbol }} {{ number_format($price['price'], 0) }}/{{ $price['billing_cycle'] === 'yearly' ? 'yr' : ($price['billing_cycle'] === 'weekly' ? 'wk' : 'mo') }}
                                 </span>
                                 <span x-show="loading" class="inline-flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5" style="animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24">
@@ -273,7 +274,7 @@
                             </td>
                             <td class="py-2.5 pr-3 text-gray-700">{{ $inv['created'] }}</td>
                             <td class="py-2.5 pr-3 font-medium text-gray-900">
-                                {{ $inv['currency'] }} ${{ number_format($inv['amount'], 2) }}
+                                {{ $currencySymbol }} {{ number_format($inv['amount'], 2) }}
                             </td>
                             <td class="py-2.5 pr-3">
                                 <x-filament::badge :color="$inv['status'] === 'paid' ? 'success' : 'gray'" size="sm">
