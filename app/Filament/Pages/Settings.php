@@ -1112,7 +1112,7 @@ class Settings extends Page implements HasForms
         try {
             $data    = $this->data;
             $to      = $data['test_email_to'] ?? null;
-            $message = $data['test_email_message'] ?? 'This is a test email from Slotara.';
+            $message = $data['test_email_message'] ?? 'This is a test email from Texora.';
 
             if (! $to) {
                 Notification::make()->title(__('Please enter a recipient email address'))->warning()->send();
