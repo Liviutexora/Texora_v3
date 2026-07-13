@@ -1134,7 +1134,7 @@ class Settings extends Page implements HasForms
 
             EmailTemplateService::sendWithLayoutFallback(
                 to: $to,
-                subjectFallback: 'Test Email from Slotara',
+                subjectFallback: 'Test Email from Texora',
                 bodyFallback: '<p>{TEST_MESSAGE}</p>',
                 placeholders: [
                     'TEST_MESSAGE'    => nl2br(e($message)),
