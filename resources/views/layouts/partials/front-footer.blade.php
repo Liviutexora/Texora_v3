@@ -49,3 +49,4 @@
 
     </div>
 </footer>
+@include('layouts.partials.cookie-consent-banner')
