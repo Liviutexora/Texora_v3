@@ -943,6 +943,7 @@ HTML,
     public static function getEloquentQuery(): Builder
     {
         $tenantId = TenantContext::id();
+        $user = auth()->user();
 
         if (! $tenantId) {
             return parent::getEloquentQuery()->whereRaw('0 = 1');
@@ -951,6 +952,10 @@ HTML,
         return parent::getEloquentQuery()
             ->withoutGlobalScope('tenant')
             ->where('tenant_id', $tenantId)
+            ->when(
+                $user?->hasAnyRole(['staff', 'provider']) && ! $user?->hasRole('tenant_owner'),
+                fn (Builder $query) => $query->whereHas('provider', fn (Builder $providerQuery) => $providerQuery->where('user_id', $user->id))
+            )
             ->with(['service', 'provider.user']);
     }
 }
