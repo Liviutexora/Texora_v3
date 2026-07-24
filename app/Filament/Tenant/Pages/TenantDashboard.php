@@ -21,7 +21,7 @@ class TenantDashboard extends Dashboard
 
     public static function canAccess(): bool
     {
-        return auth()->check() && ! auth()->user()->hasRole('staff');
+        return auth()->check();
     }
 
     public function getTitle(): string
