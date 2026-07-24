@@ -112,7 +112,7 @@ class AuthenticatedSessionController extends Controller
 
         if ($user->hasRole('super_admin')) {
             $redirectTo = route('filament.admin.pages.dashboard', absolute: false);
-        } elseif ($user->hasRole('tenant_owner')) {
+        } elseif ($user->hasAnyRole(['tenant_owner', 'provider'])) {
             $redirectTo = route('filament.tenant.pages.tenant-dashboard', absolute: false);
         } elseif ($user->hasAnyRole(['staff'])) {
             // Staff members log into the tenant manage panel
