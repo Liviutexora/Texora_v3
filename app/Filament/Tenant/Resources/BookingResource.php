@@ -114,7 +114,7 @@ class BookingResource extends Resource
                             return $record->service?->name ?? '—';
                         }),
 
-                    \Filament\Infolists\Components\TextEntry::make('provider.name')->label(__('Provider')),
+                    \Filament\Infolists\Components\TextEntry::make('provider.user.name')->label(__('Provider')),
                     \Filament\Infolists\Components\TextEntry::make('amount')
                         ->label(__('Amount'))
                         ->money(fn ($record) => $record->currency ?? 'INR')
@@ -264,7 +264,7 @@ class BookingResource extends Resource
             ->columns([
                 TextColumn::make('id')->label(__('#'))->sortable(),
                 TextColumn::make('service.name')->label(__('Service'))->searchable()->sortable(),
-                TextColumn::make('provider.name')->label(__('Provider'))->searchable(),
+                TextColumn::make('provider.user.name')->label(__('Provider'))->searchable(),
                 TextColumn::make('name')->label(__('Client'))->searchable(),
                 TextColumn::make('email')->label(__('Email'))->searchable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('phone')->label(__('Phone'))->toggleable(isToggledHiddenByDefault: true),
@@ -312,8 +312,14 @@ class BookingResource extends Resource
                     ->label(__('Provider'))
                     ->options(function () {
                         $tenantId = TenantContext::id();
-                        return \App\Models\User::whereHas('provider', fn ($q) => $q->where('tenant_id', $tenantId))
-                            ->pluck('name', 'id');
+                        return Provider::withoutGlobalScope('tenant')
+                            ->where('tenant_id', $tenantId)
+                            ->with('user')
+                            ->get()
+                            ->mapWithKeys(fn (Provider $provider) => [
+                                $provider->id => $provider->user?->name ?? ('#' . $provider->id),
+                            ])
+                            ->all();
                     }),
                 Filter::make('date_range')
                     ->label(__('Date range'))
@@ -344,7 +350,7 @@ class BookingResource extends Resource
                         $timeRange      = substr($record->start_time ?? '', 0, 5)
                             . ($record->end_time ? ' – ' . substr($record->end_time, 0, 5) : '');
                         $bookingId      = (int) $record->id;
-                        $providerUserId = (int) $record->provider_id;
+                        $providerId = (int) $record->provider_id;
 
                         return [
                             Section::make(__('Current Booking'))
@@ -360,7 +366,7 @@ class BookingResource extends Resource
                                         ->content($record->service?->name ?? '—'),
                                     Placeholder::make('_cur_provider')
                                         ->label(__('Provider'))
-                                        ->content($record->provider?->name ?? '—'),
+                                        ->content($record->provider?->user?->name ?? '—'),
                                 ])
                                 ->columns(2),
 
@@ -378,7 +384,7 @@ class BookingResource extends Resource
                                     Radio::make('new_slot')
                                         ->label(__('Available Time Slots'))
                                         ->required()
-                                        ->options(function (Get $get) use ($bookingId, $providerUserId) {
+                                        ->options(function (Get $get) use ($bookingId, $providerId) {
                                             $date = $get('new_date');
 
                                             if (! $date) {
@@ -390,8 +396,7 @@ class BookingResource extends Resource
                                                     'shifts'        => fn ($q) => $q->withoutGlobalScope('tenant'),
                                                     'slotOverrides' => fn ($q) => $q->withoutGlobalScope('tenant'),
                                                 ])
-                                                ->where('user_id', $providerUserId)
-                                                ->first();
+                                                ->find($providerId);
 
                                             if (! $provider) {
                                                 return [];
@@ -399,7 +404,7 @@ class BookingResource extends Resource
 
                                             $slots  = $provider->getSlotsForDate(Carbon::parse($date));
                                             $booked = SlotReservation::withoutGlobalScope('tenant')
-                                                ->where('provider_id', $providerUserId)
+                                                ->where('provider_id', $providerId)
                                                 ->whereDate('date', $date)
                                                 ->whereIn('status', ['pending', 'confirmed'])
                                                 ->where('id', '!=', $bookingId)
@@ -946,6 +951,6 @@ HTML,
         return parent::getEloquentQuery()
             ->withoutGlobalScope('tenant')
             ->where('tenant_id', $tenantId)
-            ->with(['service', 'provider']);
+            ->with(['service', 'provider.user']);
     }
 }

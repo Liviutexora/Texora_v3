@@ -58,7 +58,7 @@ class SlotReservationsRelationManager extends RelationManager
         if (empty($get('date'))) {
             return 'Select a date on the calendar first.';
         }
-        $provider = Provider::where('user_id', $get('provider_id'))->first();
+        $provider = Provider::find($get('provider_id'));
         if (! $provider) {
             return null;
         }
@@ -76,13 +76,13 @@ class SlotReservationsRelationManager extends RelationManager
         return "{$available} slot(s) available — choose one.";
     }
 
-    protected static function getAvailableSlots($providerUserId, $date, ?string $search = null): array
+    protected static function getAvailableSlots($providerId, $date, ?string $search = null): array
     {
-        if (empty($providerUserId) || empty($date)) {
+        if (empty($providerId) || empty($date)) {
             return [];
         }
 
-        $provider = Provider::where('user_id', $providerUserId)->first();
+        $provider = Provider::find($providerId);
         if (! $provider) {
             return [];
         }
@@ -129,7 +129,7 @@ class SlotReservationsRelationManager extends RelationManager
                 TextColumn::make('end_time')
                     ->label(__('End'))
                     ->formatStateUsing(fn ($state) => static::formatTime($state)),
-                TextColumn::make('provider.name')
+                TextColumn::make('provider.user.name')
                     ->label(__('Provider'))
                     ->searchable()
                     ->sortable(),
@@ -215,7 +215,7 @@ class SlotReservationsRelationManager extends RelationManager
                     ->modalHeading(fn (SlotReservation $record) => 'Reservation – ' . $record->date?->format('M j, Y') . ' ' . static::formatTime($record->start_time))
                     ->fillForm(function ($livewire, SlotReservation $record, $table): array {
                         $data = $record->attributesToArray();
-                        $data['provider'] = ['name' => $record->provider?->name];
+                        $data['provider'] = ['user' => ['name' => $record->provider?->user?->name]];
                         return $data;
                     })
                     ->form(fn (Schema $schema): Schema => $this->form($this->defaultForm($schema))),
@@ -235,7 +235,7 @@ class SlotReservationsRelationManager extends RelationManager
                         ];
 
                         if (Auth::check() && Auth::user()->hasRole('provider')) {
-                            $formData['provider_id'] = Auth::id();
+                            $formData['provider_id'] = Provider::where('user_id', Auth::id())->value('id');
                         }
 
                         return $formData;
@@ -266,7 +266,7 @@ class SlotReservationsRelationManager extends RelationManager
                         return $data;
                     })
                     ->after(function (SlotReservation $record): void {
-                        $provider = Provider::where('user_id', $record->provider_id)->first();
+                        $provider = Provider::find($record->provider_id);
                         if (! $provider) {
                             return;
                         }
@@ -309,7 +309,7 @@ class SlotReservationsRelationManager extends RelationManager
                             ->disabled()
                             ->dehydrated(false)
                             ->formatStateUsing(fn ($state) => static::formatTime($state)),
-                        TextInput::make('provider.name')
+                        TextInput::make('provider.user.name')
                             ->label(__('Provider'))
                             ->disabled()
                             ->dehydrated(false),
@@ -347,12 +347,19 @@ class SlotReservationsRelationManager extends RelationManager
     {
         $user = $this->getOwnerRecord();
 
-        $providerOptions = User::whereHas('roles', fn ($q) => $q->where('name', 'provider'))
-            ->orderBy('name')
-            ->pluck('name', 'id')
+        $providerOptions = Provider::query()
+            ->with('user')
+            ->get()
+            ->sortBy(fn (Provider $provider) => $provider->user?->name ?? '')
+            ->mapWithKeys(fn (Provider $provider) => [
+                $provider->id => $provider->user?->name ?? ('Provider #' . $provider->id),
+            ])
             ->all();
 
         $isProviderLogin = Auth::check() && Auth::user()->hasRole('provider');
+        $providerDefaultId = $isProviderLogin
+            ? Provider::where('user_id', Auth::id())->value('id')
+            : null;
 
         return $schema
             ->components([
@@ -367,7 +374,7 @@ class SlotReservationsRelationManager extends RelationManager
                             ->required()
                             ->searchable()
                             ->placeholder(__('Select a provider'))
-                            ->default($isProviderLogin ? Auth::id() : null)
+                            ->default($providerDefaultId)
                             ->live()
                             ->afterStateUpdated(function (Set $set): void {
                                 $set('date', null);
@@ -398,12 +405,12 @@ class SlotReservationsRelationManager extends RelationManager
                                     ->label('')
                                     ->view('filament.components.appointment-slots-picker')
                                     ->viewData(function (Get $get): array {
-                                        $providerUserId = $get('provider_id');
+                                        $providerId = $get('provider_id');
                                         $date = $get('date');
                                         $selectedSlot = $get('slot');
                                         $groupedSlots = [];
-                                        if (! empty($providerUserId) && ! empty($date)) {
-                                            $provider = Provider::with(['shifts', 'slotOverrides'])->where('user_id', $providerUserId)->first();
+                                        if (! empty($providerId) && ! empty($date)) {
+                                            $provider = Provider::with(['shifts', 'slotOverrides'])->find($providerId);
                                             if ($provider) {
                                                 $dateCarbon = Carbon::parse($date);
                                                 $slots = $provider->getSlotsForDate($dateCarbon)

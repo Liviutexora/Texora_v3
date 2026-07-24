@@ -29,7 +29,7 @@ class UpcomingBookingsWidget extends BaseWidget
                     ->where('tenant_id', TenantContext::id())
                     ->whereDate('date', '>=', today())
                     ->whereIn('status', ['pending', 'confirmed'])
-                    ->with(['service', 'provider'])
+                    ->with(['service', 'provider.user'])
                     ->orderBy('date')
                     ->orderBy('start_time')
                     ->limit(10)
@@ -44,7 +44,7 @@ class UpcomingBookingsWidget extends BaseWidget
                     ->time('H:i'),
                 TextColumn::make('service.name')
                     ->label(__('Service')),
-                TextColumn::make('provider.name')
+                TextColumn::make('provider.user.name')
                     ->label(__('Provider')),
                 TextColumn::make('name')
                     ->label(__('Client')),

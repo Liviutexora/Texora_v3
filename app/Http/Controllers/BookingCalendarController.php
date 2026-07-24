@@ -65,11 +65,10 @@ class BookingCalendarController extends Controller
 
         $booking = SlotReservation::withoutGlobalScope('tenant')
             ->where('tenant_id', $tenantId)
-            ->with('service')
+            ->with(['service', 'provider.user'])
             ->findOrFail($id);
 
-        // Provider name: provider_id references users.id
-        $providerName = \App\Models\User::find($booking->provider_id)?->name ?? '—';
+        $providerName = $booking->provider?->user?->name ?? '—';
 
         $statusLabel = match ($booking->status) {
             'confirmed' => __('Confirmed'),

@@ -77,7 +77,7 @@ class SlotReservation extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'provider_id');
+        return $this->belongsTo(Provider::class, 'provider_id');
     }
 
     public function user(): BelongsTo
@@ -102,7 +102,7 @@ class SlotReservation extends Model
 
     public function providerRelation(): BelongsTo
     {
-        return $this->belongsTo(Provider::class, 'provider_id');
+        return $this->provider();
     }
 }
 

@@ -23,12 +23,12 @@ class TodayScheduleWidget extends Widget
             ->where('tenant_id', $tenantId)
             ->whereDate('date', today())
             ->whereIn('status', ['pending', 'confirmed'])
-            ->with(['service'])
+            ->with(['service', 'provider.user'])
             ->orderBy('start_time')
             ->get();
 
-        // Group by provider name (provider() → User via provider_id = users.id)
-        $byProvider = $bookings->groupBy(fn ($b) => $b->name ?? 'Unknown Provider');
+        // Group by provider user name resolved via provider_id -> providers.id -> users.id.
+        $byProvider = $bookings->groupBy(fn ($b) => $b->provider?->user?->name ?? 'Unknown Provider');
 
         // Utilization: bookings today vs total providers
         $totalProviders = \App\Models\Provider::withoutGlobalScope('tenant')
