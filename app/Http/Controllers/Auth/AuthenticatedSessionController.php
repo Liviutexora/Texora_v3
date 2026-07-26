@@ -122,6 +122,10 @@ class AuthenticatedSessionController extends Controller
             $redirectTo = route('my-bookings', absolute: false);
         }
 
+        if (! $user->hasAnyRole(['super_admin', 'tenant_owner', 'staff', 'provider'])) {
+            return redirect($redirectTo);
+        }
+
         return redirect()->intended($redirectTo);
     }
 
