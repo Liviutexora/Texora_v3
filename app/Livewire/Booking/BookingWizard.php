@@ -5,6 +5,7 @@ namespace App\Livewire\Booking;
 use App\Helpers\NotificationHelper;
 use App\Services\BookingNotificationService;
 use App\Services\BookingPaymentService;
+use App\Services\BookingEngine;
 use App\Models\Provider;
 use App\Models\Service;
 use App\Models\Setting;
@@ -256,6 +257,11 @@ class BookingWizard extends Component
             return collect();
         }
 
+        $selectedServices = $this->getSelectedServices();
+        if ($selectedServices->isEmpty()) {
+            return collect();
+        }
+
         $date = Carbon::parse($this->selectedDate);
 
         if ($date->isPast() && ! $date->isToday()) {
@@ -289,7 +295,10 @@ class BookingWizard extends Component
                 return collect();
             }
 
-            return $this->filterByAdvanceNotice($this->slotsForProvider($provider, $date), $date);
+            return $this->filterByAdvanceNotice(
+                $this->slotsForProvider($provider, $date, $selectedServices),
+                $date,
+            );
         }
 
         // ── No preference — union of slots across all service providers ─
@@ -309,7 +318,7 @@ class BookingWizard extends Component
         }
 
         $slots = $providers
-            ->flatMap(fn ($p) => $this->slotsForProvider($p, $date)->values())
+            ->flatMap(fn ($p) => $this->slotsForProvider($p, $date, $selectedServices)->values())
             ->unique('start')
             ->sortBy('start')
             ->values();
@@ -317,29 +326,50 @@ class BookingWizard extends Component
         return $this->filterByAdvanceNotice($slots, $date);
     }
 
-    /** Return available (non-booked) slots for one provider on a date. */
-    private function slotsForProvider(Provider $provider, Carbon $date): Collection
+    private function getSelectedServices(): Collection
     {
-        $booked = SlotReservation::withoutGlobalScope('tenant')
-            ->where('provider_id', $provider->id)
-            ->whereDate('date', $date)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->pluck('start_time')
-            ->map(fn ($t) => substr($t, 0, 5))
-            ->toArray();
+        $selectedIds = $this->allowMultipleServices
+            ? array_values(array_filter(array_map('intval', $this->serviceIds)))
+            : ($this->serviceId ? [$this->serviceId] : []);
+
+        if (empty($selectedIds) || ! $this->tenantId) {
+            return collect();
+        }
+
+        return Service::withoutGlobalScope('tenant')
+            ->where('tenant_id', $this->tenantId)
+            ->whereIn('id', $selectedIds)
+            ->get();
+    }
+
+    /** Return available (non-booked) slots for one provider on a date. */
+    private function slotsForProvider(Provider $provider, Carbon $date, Collection $selectedServices): Collection
+    {
+        $bookingEngine = app(BookingEngine::class);
 
         // Tenant-level availability takes priority over per-provider shifts
         if (! empty($this->tenantAvailability)) {
-            return $this->slotsFromTenantAvailability($date, $booked);
+            $baseSlots = $this->slotsFromTenantAvailability($date);
+
+            return $bookingEngine->getReservableStartsForProvider(
+                $provider,
+                $date,
+                $selectedServices,
+                max(0, $this->tenantBufferTime),
+                null,
+                $baseSlots,
+            );
         }
 
-        return $provider->getSlotsForDate($date)
-            ->filter(fn ($slot) => $slot['status'] === 'available'
-                && ! in_array($slot['start'], $booked, true));
+        return $bookingEngine->getReservableStartsForProvider(
+            $provider,
+            $date,
+            $selectedServices,
+        );
     }
 
     /** Generate slots from the tenant-level availability settings (FormBuilder → General tab). */
-    private function slotsFromTenantAvailability(Carbon $date, array $booked = []): Collection
+    private function slotsFromTenantAvailability(Carbon $date): Collection
     {
         if (empty($this->tenantAvailability) || $this->tenantSlotDuration <= 0) {
             return collect();
@@ -374,9 +404,7 @@ class BookingWizard extends Component
             $startStr = $cursor->format('H:i');
             $endStr   = $slotEnd->format('H:i');
 
-            if (! in_array($startStr, $booked, true)) {
-                $slots->push(['start' => $startStr, 'end' => $endStr, 'status' => 'available']);
-            }
+            $slots->push(['start' => $startStr, 'end' => $endStr, 'status' => 'available']);
 
             $cursor->addMinutes($step);
         }
@@ -624,35 +652,65 @@ class BookingWizard extends Component
         // safety net if the lock races with a request from a different process.
         try {
             $booking = DB::transaction(function () use ($tenant, $service, $answersPayload) {
+                $engine = app(BookingEngine::class);
+                $bookingDate = Carbon::parse($this->selectedDate);
+                $validationBuffer = ! empty($this->tenantAvailability) ? max(0, $this->tenantBufferTime) : 0;
+                $tenantBaseSlots = ! empty($this->tenantAvailability) ? $this->slotsFromTenantAvailability($bookingDate) : null;
+                $requiredDurationMinutes = $engine->calculateTotalDurationMinutes($this->getSelectedServices());
+                $selectedEnd = $this->selectedEnd
+                    ?: Carbon::createFromFormat('H:i', $this->selectedStart)
+                        ->addMinutes(max(1, $requiredDurationMinutes + $validationBuffer))
+                        ->format('H:i');
+
                 // Resolve provider inside the transaction so the availability check
                 // and the INSERT are atomic. lockForUpdate prevents other
                 // transactions from inserting a conflicting booking while we decide.
                 $assignedProviderId = $this->providerId;
                 if ($assignedProviderId === null) {
-                    $assignedProviderId = Provider::withoutGlobalScope('tenant')
+                    $assignedProvider = Provider::withoutGlobalScope('tenant')
                         ->where('tenant_id', $this->tenantId)
                         ->when($this->serviceId, fn ($q) =>
                             $q->whereHas('services', fn ($s) => $s->where('services.id', $this->serviceId))
                         )
-                        ->whereDoesntHave('bookings', fn ($q) => $q
-                            ->whereDate('date', $this->selectedDate)
-                            ->where('start_time', $this->selectedStart)
-                            ->whereIn('status', ['pending', 'confirmed'])
-                        )
                         ->lockForUpdate()
-                        ->value('id');
+                        ->get()
+                        ->first(fn (Provider $provider) => $engine->validateReservationInterval(
+                            $provider,
+                            $bookingDate,
+                            $this->selectedStart,
+                            $selectedEnd,
+                            null,
+                            $validationBuffer,
+                            $tenantBaseSlots,
+                        ));
 
-                    if ($assignedProviderId === null) {
-                        $assignedProviderId = Provider::withoutGlobalScope('tenant')
+                    if (! $assignedProvider) {
+                        $assignedProvider = Provider::withoutGlobalScope('tenant')
                             ->where('tenant_id', $this->tenantId)
-                            ->whereDoesntHave('bookings', fn ($q) => $q
-                                ->whereDate('date', $this->selectedDate)
-                                ->where('start_time', $this->selectedStart)
-                                ->whereIn('status', ['pending', 'confirmed'])
-                            )
                             ->lockForUpdate()
-                            ->value('id');
+                            ->get()
+                            ->first(fn (Provider $provider) => $engine->validateReservationInterval(
+                                $provider,
+                                $bookingDate,
+                                $this->selectedStart,
+                                $selectedEnd,
+                                null,
+                                $validationBuffer,
+                                $tenantBaseSlots,
+                            ));
                     }
+
+                    $assignedProviderId = $assignedProvider?->id;
+                } elseif (! $engine->validateReservationInterval(
+                    $assignedProviderId,
+                    $bookingDate,
+                    $this->selectedStart,
+                    $selectedEnd,
+                    null,
+                    $validationBuffer,
+                    $tenantBaseSlots,
+                )) {
+                    return null;
                 }
 
                 if ($assignedProviderId === null) {

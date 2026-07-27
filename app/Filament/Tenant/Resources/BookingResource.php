@@ -11,6 +11,7 @@ use App\Jobs\SendBookingRescheduledSms;
 use App\Models\CustomerFollowup;
 use App\Models\Provider;
 use App\Models\SlotReservation;
+use App\Services\BookingEngine;
 use App\Services\BookingPaymentService;
 use App\Support\TenantContext;
 use App\Support\TenantPaymentSettings;
@@ -384,10 +385,15 @@ class BookingResource extends Resource
                                     Radio::make('new_slot')
                                         ->label(__('Available Time Slots'))
                                         ->required()
-                                        ->options(function (Get $get) use ($bookingId, $providerId) {
+                                        ->options(function (Get $get) use ($bookingId, $providerId, $record) {
                                             $date = $get('new_date');
 
                                             if (! $date) {
+                                                return [];
+                                            }
+
+                                            $requiredDurationMinutes = (int) ($record->service?->duration_minutes ?? 0);
+                                            if ($requiredDurationMinutes <= 0) {
                                                 return [];
                                             }
 
@@ -402,19 +408,16 @@ class BookingResource extends Resource
                                                 return [];
                                             }
 
-                                            $slots  = $provider->getSlotsForDate(Carbon::parse($date));
-                                            $booked = SlotReservation::withoutGlobalScope('tenant')
-                                                ->where('provider_id', $providerId)
-                                                ->whereDate('date', $date)
-                                                ->whereIn('status', ['pending', 'confirmed'])
-                                                ->where('id', '!=', $bookingId)
-                                                ->pluck('start_time')
-                                                ->map(fn ($t) => substr($t, 0, 5))
-                                                ->toArray();
+                                            $engine = app(BookingEngine::class);
+                                            $slots = $engine->getReservableStartsForProvider(
+                                                $provider,
+                                                Carbon::parse($date),
+                                                $requiredDurationMinutes,
+                                                0,
+                                                $bookingId,
+                                            );
 
                                             return $slots
-                                                ->filter(fn ($s) => $s['status'] === 'available'
-                                                    && ! in_array($s['start'], $booked, true))
                                                 ->mapWithKeys(fn ($s) => [
                                                     $s['start'] . '|' . $s['end'] => $s['start'] . ' – ' . $s['end'],
                                                 ])
@@ -428,6 +431,27 @@ class BookingResource extends Resource
                     })
                     ->action(function ($record, array $data) {
                         [$newStart, $newEnd] = explode('|', $data['new_slot']);
+
+                        $provider = Provider::withoutGlobalScope('tenant')
+                            ->with([
+                                'shifts'        => fn ($q) => $q->withoutGlobalScope('tenant'),
+                                'slotOverrides' => fn ($q) => $q->withoutGlobalScope('tenant'),
+                            ])
+                            ->find($record->provider_id);
+
+                        if (! $provider || ! app(BookingEngine::class)->validateReservationInterval(
+                            $provider,
+                            Carbon::parse($data['new_date']),
+                            $newStart,
+                            $newEnd,
+                            (int) $record->id,
+                        )) {
+                            \Filament\Notifications\Notification::make()
+                                ->title(__('Sorry, that slot was just taken. Please choose another time.'))
+                                ->danger()
+                                ->send();
+                            return;
+                        }
 
                         app(BookingPaymentService::class)->maybeDeleteCalendar($record);
 

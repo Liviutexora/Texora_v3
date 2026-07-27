@@ -8,6 +8,7 @@ use App\Models\Provider;
 use App\Models\ProviderSlotOverride;
 use App\Models\SlotReservation;
 use App\Models\User;
+use App\Services\BookingEngine;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -29,6 +30,7 @@ use Filament\Tables\Table;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 
 class SlotReservationsRelationManager extends RelationManager
@@ -261,6 +263,19 @@ class SlotReservationsRelationManager extends RelationManager
                         }
                         if (empty($data['phone']) && $user->phone_number) {
                             $data['phone'] = $user->phone_number;
+                        }
+
+                        $provider = Provider::find($data['provider_id'] ?? null);
+                        $date = isset($data['date']) ? Carbon::parse($data['date']) : null;
+                        if (! $provider || ! $date || ! app(BookingEngine::class)->validateReservationInterval(
+                            $provider,
+                            $date,
+                            (string) ($data['start_time'] ?? ''),
+                            (string) ($data['end_time'] ?? ''),
+                        )) {
+                            throw ValidationException::withMessages([
+                                'slot' => __('Sorry, that slot was just taken. Please choose another time.'),
+                            ]);
                         }
 
                         return $data;
