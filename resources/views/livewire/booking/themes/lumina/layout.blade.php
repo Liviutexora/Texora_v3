@@ -651,15 +651,10 @@
                                 <input type="file" wire:model="customAnswers.{{ $idx }}"
                                     class="box-border w-full rounded-lg border border-[var(--bw-border)] bg-[var(--bw-bg-raised)] px-3 py-2 font-[inherit] text-[13px] text-[var(--bw-text)] outline-none">
                             @elseif ($ft === 'email')
-                                @php $isAuthEmail = $authUser && strtolower($customAnswers[$idx] ?? '') === strtolower($authUser->email ?? ''); @endphp
                                 <input type="email" wire:model="customAnswers.{{ $idx }}"
                                     placeholder="{{ $field['placeholder'] ?? '' }}"
-                                    @if($isAuthEmail) readonly @endif
-                                    class="box-border w-full rounded-lg border border-[var(--bw-border)] px-3 py-[9px] font-[inherit] text-[14px] text-[var(--bw-text)] outline-none {{ $isAuthEmail ? 'cursor-not-allowed bg-[var(--bw-bg-muted)]' : '' }}"
-                                    @if(!$isAuthEmail) onfocus="this.style.borderColor='{{ $brand }}'" onblur="this.style.borderColor='var(--bw-border)'" @endif>
-                                @if($isAuthEmail)
-                                <p class="mt-[3px] text-[11px] text-[var(--bw-text-4)]">{{ __("Locked to your signed-in account.") }}</p>
-                                @endif
+                                    class="box-border w-full rounded-lg border border-[var(--bw-border)] px-3 py-[9px] font-[inherit] text-[14px] text-[var(--bw-text)] outline-none"
+                                    onfocus="this.style.borderColor='{{ $brand }}'" onblur="this.style.borderColor='var(--bw-border)'">
                             @elseif ($ft === 'phone')
                                 <input type="tel" wire:model="customAnswers.{{ $idx }}"
                                     placeholder="{{ $field['placeholder'] ?? '' }}"
@@ -717,16 +712,10 @@
                     </div>
                     <div>
                         <label class="mb-[5px] block text-[13px] font-medium text-[var(--bw-text-2)]">{{ __("Email") }} <span class="text-[#dc2626]">*</span></label>
-                        @if ($authUser)
-                        <input type="email" wire:model="email" readonly
-                            class="box-border w-full cursor-not-allowed rounded-lg border border-[var(--bw-border)] bg-[var(--bw-bg-muted)] px-3 py-[9px] font-[inherit] text-[14px] text-[var(--bw-text)] outline-none">
-                        <p class="mt-[3px] text-[11px] text-[var(--bw-text-4)]">{{ __("Locked to your signed-in account.") }}</p>
-                        @else
                         <input type="email" wire:model="email" placeholder="{{ __('jane@example.com') }}"
                             class="box-border w-full rounded-lg border border-[var(--bw-border)] px-3 py-[9px] font-[inherit] text-[14px] text-[var(--bw-text)] outline-none"
                             onfocus="this.style.borderColor='{{ $brand }}'" onblur="this.style.borderColor='var(--bw-border)'">
                         @error('email') <span class="mt-[3px] block text-[11px] text-[#dc2626]">{{ $message }}</span> @enderror
-                        @endif
                     </div>
                     <div>
                         <label class="mb-[5px] block text-[13px] font-medium text-[var(--bw-text-2)]">
