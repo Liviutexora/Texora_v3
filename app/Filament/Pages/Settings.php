@@ -6,6 +6,8 @@ use App\Filament\Concerns\HasPagePermissions;
 use App\Helpers\DemoModeHelper;
 use App\Models\PasswordPolicy;
 use App\Models\Setting;
+use App\Services\Pwa\Core\PwaStaticArtifactPublisher;
+use App\Services\Pwa\DTO\PwaContextData;
 use App\Support\LocalisationOptions;
 use App\Services\EmailTemplateService;
 use App\Services\FileUploadService;
@@ -129,6 +131,13 @@ class Settings extends Page implements HasForms
             'site_admin_logo_height' => Setting::get('site_admin_logo_height', 2),
             'site_logo'              => Setting::get('site_logo'),
             'site_favicon'           => Setting::get('site_favicon'),
+            'pwa_app_name'           => Setting::get('pwa_app_name', Setting::get('site_name', config('app.name'))),
+            'pwa_short_name'         => Setting::get('pwa_short_name', Setting::get('site_name', config('app.name'))),
+            'pwa_theme_color'        => Setting::get('pwa_theme_color', '#111827'),
+            'pwa_background_color'   => Setting::get('pwa_background_color', '#ffffff'),
+            'pwa_icon_192'           => Setting::get('pwa_icon_192'),
+            'pwa_icon_512'           => Setting::get('pwa_icon_512'),
+            'pwa_maskable_icon_512'  => Setting::get('pwa_maskable_icon_512'),
 
             // Email (SMTP) — password is write-only
             'contact_email'     => Setting::get('contact_email', Setting::get('mail_from_address', env('MAIL_FROM_ADDRESS'))),
@@ -273,6 +282,62 @@ class Settings extends Page implements HasForms
                                             ->maxSize(512)
                                             ->helperText(__('Recommended: 32×32 PNG/ICO, max 512 KB.'))
                                             ->saveUploadedFileUsing(fn ($file) => FileUploadService::handleFileUpload($file, 'settings/favicons')),
+
+                                        TextInput::make('pwa_app_name')
+                                            ->label(__('PWA App Name'))
+                                            ->helperText(__('Used in the install prompt and app launcher.')),
+
+                                        TextInput::make('pwa_short_name')
+                                            ->label(__('PWA Short Name'))
+                                            ->helperText(__('Used when space is limited on the home screen.')),
+
+                                        TextInput::make('pwa_theme_color')
+                                            ->label(__('PWA Theme Color'))
+                                            ->default('#111827')
+                                            ->placeholder('#111827')
+                                            ->helperText(__('Controls browser chrome and Android app theming.')),
+
+                                        TextInput::make('pwa_background_color')
+                                            ->label(__('PWA Background Color'))
+                                            ->default('#ffffff')
+                                            ->placeholder('#ffffff')
+                                            ->helperText(__('Used on the splash screen while the app loads.')),
+
+                                        FileUpload::make('pwa_icon_192')
+                                            ->label(__('PWA Icon 192x192'))
+                                            ->image()
+                                            ->placeholder(__('Drag & Drop your files or Browse'))
+                                            ->disk(fn () => Setting::get('filesystem_disk', env('FILESYSTEM_DISK', 'public')))
+                                            ->directory('settings/pwa')
+                                            ->visibility('public')
+                                            ->preserveFilenames(false)
+                                            ->maxSize(2048)
+                                            ->helperText(__('Recommended: PNG 192×192. Falls back to favicon or logo if missing.'))
+                                            ->saveUploadedFileUsing(fn ($file) => FileUploadService::handleFileUpload($file, 'settings/pwa')),
+
+                                        FileUpload::make('pwa_icon_512')
+                                            ->label(__('PWA Icon 512x512'))
+                                            ->image()
+                                            ->placeholder(__('Drag & Drop your files or Browse'))
+                                            ->disk(fn () => Setting::get('filesystem_disk', env('FILESYSTEM_DISK', 'public')))
+                                            ->directory('settings/pwa')
+                                            ->visibility('public')
+                                            ->preserveFilenames(false)
+                                            ->maxSize(4096)
+                                            ->helperText(__('Recommended: PNG 512×512. Falls back to logo if missing.'))
+                                            ->saveUploadedFileUsing(fn ($file) => FileUploadService::handleFileUpload($file, 'settings/pwa')),
+
+                                        FileUpload::make('pwa_maskable_icon_512')
+                                            ->label(__('Maskable Icon 512x512'))
+                                            ->image()
+                                            ->placeholder(__('Drag & Drop your files or Browse'))
+                                            ->disk(fn () => Setting::get('filesystem_disk', env('FILESYSTEM_DISK', 'public')))
+                                            ->directory('settings/pwa')
+                                            ->visibility('public')
+                                            ->preserveFilenames(false)
+                                            ->maxSize(4096)
+                                            ->helperText(__('Recommended: PNG 512×512 with safe maskable padding. Falls back to the standard 512 icon.'))
+                                            ->saveUploadedFileUsing(fn ($file) => FileUploadService::handleFileUpload($file, 'settings/pwa')),
                                     ])->columns(2),
                             ]),
 
@@ -1078,6 +1143,20 @@ class Settings extends Page implements HasForms
                 } catch (\Exception $e) {
                     Log::error('Failed to write robots.txt: ' . $e->getMessage());
                 }
+            }
+
+            try {
+                $baseUrl = rtrim((string) url('/'), '/');
+
+                app(PwaStaticArtifactPublisher::class)->publish(
+                    new PwaContextData(
+                        'texora-default',
+                        $baseUrl . '/',
+                        $baseUrl . '/',
+                    ),
+                );
+            } catch (\Throwable $e) {
+                Log::error('Failed to publish PWA static artifacts: ' . $e->getMessage());
             }
 
             config(['activitylog.enabled' => $originalConfig]);

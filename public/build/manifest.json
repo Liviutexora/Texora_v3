@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-gVxLnVFY.css",
+    "file": "assets/app-D4ZihhCb.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -10,12 +10,12 @@
     "isEntry": true
   },
   "resources/css/tenant-panel.css": {
-    "file": "assets/tenant-panel-gaF8b453.css",
+    "file": "assets/tenant-panel-uXMBLHgM.css",
     "src": "resources/css/tenant-panel.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DkEqo8N5.js",
+    "file": "assets/app-C3SpC6pb.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
@@ -54,6 +54,12 @@
     "file": "assets/my-bookings-CWDN2aUL.js",
     "name": "my-bookings",
     "src": "resources/js/my-bookings.js",
+    "isEntry": true
+  },
+  "resources/js/pwa/index.js": {
+    "file": "assets/index-I8FTtA9L.js",
+    "name": "index",
+    "src": "resources/js/pwa/index.js",
     "isEntry": true
   },
   "resources/js/welcome.js": {

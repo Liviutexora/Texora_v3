@@ -124,3 +124,5 @@
 </script>
 
 <link rel="canonical" href="{{ url()->current() }}" />
+
+<x-pwa-head />

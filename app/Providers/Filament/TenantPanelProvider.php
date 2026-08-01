@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Tenant\Pages\TenantDashboard;
 use App\Http\Middleware\SetTenantFromUser;
 use App\Http\Middleware\TenantAuthenticate;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -70,6 +71,16 @@ class TenantPanelProvider extends PanelProvider
             )
             ->pages([
                 TenantDashboard::class,
+            ])
+            ->userMenuItems([
+                'mobile_app' => Action::make('mobileAppInstall')
+                    ->label(__('Mobile App'))
+                    ->icon('heroicon-o-device-phone-mobile')
+                    ->sort(1)
+                    ->extraAttributes([
+                        'data-pwa-install-button' => '1',
+                        'data-pwa-install-preserve-content' => '1',
+                    ]),
             ])
             ->discoverWidgets(
                 in: app_path('Filament/Tenant/Widgets'),

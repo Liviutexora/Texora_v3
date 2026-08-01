@@ -117,6 +117,11 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-pwa-head
+        :app-id="'booking:' . ($tenant?->slug ?? 'default')"
+        :start-url="$tenant?->slug ? url('/' . $tenant->slug) : url('/')"
+        :scope="$tenant?->slug ? url('/' . trim($tenant->slug, '/') . '/') : url('/')"
+    />
     @livewireStyles
 </head>
 <body class="min-h-screen antialiased">

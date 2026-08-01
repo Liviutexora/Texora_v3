@@ -121,6 +121,14 @@ class AdminPanelProvider extends PanelProvider
                     ->label(__('Profile'))
                     ->icon('heroicon-o-user')
                     ->url(fn (): string => Profile::getUrl(panel: 'admin')),
+                'mobile_app' => Action::make('mobileAppInstall')
+                    ->label(__('Mobile App'))
+                    ->icon('heroicon-o-device-phone-mobile')
+                    ->sort(1)
+                    ->extraAttributes([
+                        'data-pwa-install-button' => '1',
+                        'data-pwa-install-preserve-content' => '1',
+                    ]),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

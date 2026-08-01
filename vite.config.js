@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/js/login-demo-panel.js',
                 'resources/js/my-bookings.js',
                 'resources/js/booking-theme.js',
+                'resources/js/pwa/index.js',
             ],
             refresh: true,
         }),

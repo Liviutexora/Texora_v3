@@ -8,6 +8,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+    <x-pwa-head
+        app-id="client:my-bookings"
+        :start-url="route('my-bookings')"
+        :scope="url('/')"
+    />
     @vite(['resources/css/app.css'])
     <link rel="stylesheet" href="/font-proxy?family=Inter&weights=400;500;600;700;800;900">
     {{-- Styles extracted to resources/css/components.css --}}
