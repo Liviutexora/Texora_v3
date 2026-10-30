@@ -22,6 +22,7 @@ class Service extends Model
         'color',
         'is_active',
         'sort_order',
+        'followup_interval_days',
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class Service extends Model
             'duration_minutes' => 'integer',
             'sort_order'       => 'integer',
             'is_active'        => 'boolean',
+            'followup_interval_days' => 'integer',
         ];
     }
 

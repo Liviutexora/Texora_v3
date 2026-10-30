@@ -110,6 +110,7 @@ class FormBuilder extends Component
     public string $svcCategory       = '';
     public int    $svcDuration       = 30;
     public float  $svcPrice          = 0;
+    public ?int   $svcFollowupIntervalDays = null;
     public string $svcColor          = '#6d28d9';
     public bool   $svcActive         = true;
     public int    $svcSortOrder      = 0;
@@ -711,6 +712,7 @@ class FormBuilder extends Component
         $this->svcCategory      = '';
         $this->svcDuration      = 30;
         $this->svcPrice         = 0;
+        $this->svcFollowupIntervalDays = null;
         $this->svcColor         = '#6d28d9';
         $this->svcActive        = true;
         $this->svcSortOrder     = 0;
@@ -731,6 +733,7 @@ class FormBuilder extends Component
         $this->svcCategory      = $svc->category ?? '';
         $this->svcDuration      = $svc->duration_minutes;
         $this->svcPrice         = (float) $svc->price;
+        $this->svcFollowupIntervalDays = $svc->followup_interval_days !== null ? (int) $svc->followup_interval_days : null;
         $this->svcColor         = $svc->color ?? '#6d28d9';
         $this->svcActive        = (bool) $svc->is_active;
         $this->svcSortOrder     = $svc->sort_order ?? 0;
@@ -755,6 +758,11 @@ class FormBuilder extends Component
         }
         $this->svcError = '';
 
+        if ($this->svcFollowupIntervalDays !== null && $this->svcFollowupIntervalDays < 1) {
+            $this->svcError = __('Recommended return must be a positive whole number.');
+            return;
+        }
+
         // Double-check plan limit on new services (guards direct wire: calls)
         if (! $this->editingServiceId && $this->isAtServiceLimit()) {
             $this->dispatch('toast-warning', message: $this->planLimitMessage('service'));
@@ -772,6 +780,7 @@ class FormBuilder extends Component
             'is_active'        => $this->svcActive,
             'sort_order'       => (int) $this->svcSortOrder,
             'currency'         => Tenant::find($this->tenantId)?->currency ?? 'USD',
+            'followup_interval_days' => $this->svcFollowupIntervalDays ?: null,
         ];
 
         if ($this->editingServiceId) {

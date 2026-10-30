@@ -648,6 +648,11 @@ $currSym = ['INR'=>'₹','USD'=>'$','GBP'=>'£','EUR'=>'€','AED'=>'AED ','SGD'
                 </div>
             </div>
 
+            <div>
+                <label class="fb-label">{{ __('Recommended return (days)') }}</label>
+                <input type="number" wire:model="svcFollowupIntervalDays" min="1" step="1" class="fb-input">
+            </div>
+
             {{-- Available providers --}}
             @if($providers->isNotEmpty())
             <div>

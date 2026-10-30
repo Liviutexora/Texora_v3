@@ -528,7 +528,9 @@ class BookingResource extends Resource
 
                                 Placeholder::make('recommended_followup')
                                     ->label(__('Recommended follow-up'))
-                                    ->content(__('30 days (service setting)'))
+                                    ->content(fn ($record): string => $record->service?->followup_interval_days
+                                        ? __(':days days (service setting)', ['days' => $record->service->followup_interval_days])
+                                        : __('No follow-up interval is configured for this service.'))
                                     ->dehydrated(false)
                                     ->visible(fn (Get $get): bool =>
                                         (bool) $get('create_followup_reminder')
@@ -562,16 +564,31 @@ class BookingResource extends Resource
                     ])
                     ->fillForm(fn ($record) => ['status' => $record->status])
                     ->action(function ($record, array $data) {
+                        $usesServiceRecommendation = ($data['status'] ?? null) === 'completed'
+                            && ($data['create_followup_reminder'] ?? false)
+                            && ($data['reminder_source'] ?? null) === 'service_recommendation';
+                        $serviceDays = $record->service?->followup_interval_days;
+
+                        if ($usesServiceRecommendation && (! $serviceDays || (int) $serviceDays < 1)) {
+                            Notification::make()
+                                ->danger()
+                                ->title(__('Follow-up cannot be created'))
+                                ->body(__('No follow-up interval is configured for this service.'))
+                                ->send();
+                            return;
+                        }
+
                         $wasNotCancelled = $record->status !== 'cancelled';
                         $record->update(['status' => $data['status']]);
 
                         if (
                             ($data['status'] ?? null) === 'completed'
                             && ($data['create_followup_reminder'] ?? false)
-                            && ($data['reminder_source'] ?? null) === 'custom'
-                            && filled($data['followup_after_days'] ?? null)
+                            && in_array($data['reminder_source'] ?? null, ['custom', 'service_recommendation'], true)
                         ) {
-                            $days = (int) $data['followup_after_days'];
+                            $days = ($data['reminder_source'] ?? null) === 'service_recommendation'
+                                ? (int) $serviceDays
+                                : (int) ($data['followup_after_days'] ?? 0);
 
                             if ($days > 0 && ! CustomerFollowup::query()
                                 ->where('slot_reservation_id', $record->id)

@@ -79,6 +79,13 @@ class ServiceResource extends Resource
                         ->minValue(0)
                         ->default(0)
                         ->prefix(fn () => TenantContext::current()?->currency ?? 'INR'),
+
+                    TextInput::make('followup_interval_days')
+                        ->label(__('Recommended return (days)'))
+                        ->numeric()
+                        ->integer()
+                        ->minValue(1)
+                        ->nullable(),
                 ]),
 
             Section::make(__('Visibility'))
