@@ -13,10 +13,20 @@ class CrmStatsOverview extends BaseWidget
     {
         return [
             Stat::make(__('Reminder clienți'), 0)
-                ->description(__('0 astăzi • 0 în următoarele 7 zile'))
+                ->description(__('0 astăzi · 0 în următoarele 7 zile'))
                 ->descriptionIcon('heroicon-m-arrow-path')
                 ->url(route('filament.tenant.pages.reveniri-clienti'))
                 ->color('primary'),
+            Stat::make(__('Campaigns'), __('In development'))
+                ->description(__('In development'))
+                ->descriptionIcon('heroicon-m-megaphone')
+                ->color('primary')
+                ->extraAttributes(['wire:click' => '$dispatch("open-crm-modal", { modal: "campaigns" })', 'class' => 'cursor-pointer']),
+            Stat::make(__('Customer reviews'), __('In development'))
+                ->description(__('In development'))
+                ->descriptionIcon('heroicon-m-star')
+                ->color('primary')
+                ->extraAttributes(['wire:click' => '$dispatch("open-crm-modal", { modal: "reviews" })', 'class' => 'cursor-pointer']),
         ];
     }
 }

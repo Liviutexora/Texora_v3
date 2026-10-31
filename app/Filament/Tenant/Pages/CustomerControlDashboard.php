@@ -3,6 +3,7 @@
 namespace App\Filament\Tenant\Pages;
 
 use Filament\Pages\Page;
+use Livewire\Attributes\On;
 
 class CustomerControlDashboard extends Page
 {
@@ -30,6 +31,7 @@ class CustomerControlDashboard extends Page
         return __('Panou de control clienți');
     }
 
+    #[On('open-crm-modal')]
     public function openModal(string $modal): void
     {
         $this->activeModal = $modal;
