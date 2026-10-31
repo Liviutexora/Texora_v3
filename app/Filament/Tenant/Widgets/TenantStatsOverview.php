@@ -132,8 +132,8 @@ class TenantStatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-users')
                 ->color('info'),
 
-            Stat::make(__('Reminder clienți'), 0)
-                ->description(__('0 astăzi • 0 în următoarele 7 zile'))
+            Stat::make(__('Customer reminders'), 0)
+                ->description(__('0 today • 0 in the next 7 days'))
                 ->descriptionIcon('heroicon-m-arrow-path')
                 ->color('primary'),
         ];

@@ -1531,5 +1531,22 @@
     "Customer reactivation": "Reactivare clienți",
     "Birthdays": "Zile de naștere",
     "Promotional campaigns": "Campanii promoționale",
-    "Return campaigns": "Campanii de revenire"
+    "Return campaigns": "Campanii de revenire",
+    "Customer Control Dashboard": "Panou de control clienți",
+    "Customer reminders": "Reminder clienți",
+    "0 today · 0 in the next 7 days": "0 astăzi · 0 în următoarele 7 zile",
+    "0 today • 0 in the next 7 days": "0 astăzi • 0 în următoarele 7 zile",
+    "List of customers who need to be contacted for a follow-up.": "Lista clienților care trebuie contactați pentru revenire.",
+    "Customers scheduled for follow-up": "Clienți programați pentru revenire",
+    "Uncontacted": "Necontactat",
+    "Called": "Apelat",
+    "Email sent": "E-mail trimis",
+    "SMS sent": "SMS trimis",
+    "Send SMS": "Trimite SMS",
+    "Send Email": "Trimite e-mail",
+    "Mark as called": "Marchează ca apelat",
+    "Appointment completed": "Programare realizată",
+    "Inactive client": "Client inactiv",
+    "Reminder": "Reminder",
+    "day count": "o zi|:count zile|:count de zile"
 }

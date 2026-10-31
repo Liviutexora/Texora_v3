@@ -191,6 +191,28 @@ Romanian diacritics, and international characters. Do not introduce UTF-16,
 NUL characters, or mojibake. Do not rewrite entire files merely to change
 encoding unless explicitly requested.
 
+### English-first code and multilingual localization
+
+Use English for all new source-code identifiers, including class names,
+methods, variables, enum values, database aliases, and translation keys.
+
+Use Romanian as the semantic reference language when determining the intended
+meaning of user-facing text, but define new translation keys in English and
+provide translations for every locale enabled by the application.
+
+Localize dynamic labels, counters, dates, pluralized units, and generated
+messages through the existing Laravel translation and formatting mechanisms.
+Preserve placeholder names, pluralization behavior, HTML, URLs, and technical
+identifiers.
+
+Ensure localized output remains compatible with RTL languages, especially
+Arabic, including safe bidirectional rendering of mixed text and numeric
+values.
+
+Preserve existing translation keys unless a change is explicitly required.
+Do not automatically translate user-generated business data such as customer
+names, service names, notes, or descriptions.
+
 ## 15. Read-only investigations
 
 When the user requests investigation, analysis, identification, or READ-ONLY:

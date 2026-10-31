@@ -1532,5 +1532,22 @@
     "Customer reactivation": "Customer reactivation",
     "Birthdays": "Birthdays",
     "Promotional campaigns": "Promotional campaigns",
-    "Return campaigns": "Return campaigns"
+    "Return campaigns": "Return campaigns",
+    "Customer Control Dashboard": "Customer Control Dashboard",
+    "Customer reminders": "Customer reminders",
+    "0 today · 0 in the next 7 days": "0 today · 0 in the next 7 days",
+    "0 today • 0 in the next 7 days": "0 today • 0 in the next 7 days",
+    "List of customers who need to be contacted for a follow-up.": "List of customers who need to be contacted for a follow-up.",
+    "Customers scheduled for follow-up": "Customers scheduled for follow-up",
+    "Uncontacted": "Uncontacted",
+    "Called": "Called",
+    "Email sent": "Email sent",
+    "SMS sent": "SMS sent",
+    "Send SMS": "Send SMS",
+    "Send Email": "Send Email",
+    "Mark as called": "Mark as called",
+    "Appointment completed": "Appointment completed",
+    "Inactive client": "Inactive client",
+    "Reminder": "Reminder",
+    "day count": "one day|:count days"
 }

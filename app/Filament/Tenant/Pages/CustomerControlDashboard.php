@@ -23,12 +23,12 @@ class CustomerControlDashboard extends Page
 
     public static function getNavigationLabel(): string
     {
-        return __('Panou de control clienți');
+        return __('Customer Control Dashboard');
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
     {
-        return __('Panou de control clienți');
+        return __('Customer Control Dashboard');
     }
 
     #[On('open-crm-modal')]

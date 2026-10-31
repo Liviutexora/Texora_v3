@@ -25,7 +25,7 @@ class CustomerReturnsTableWidget extends BaseWidget
 
     protected function getTableHeading(): string|\Illuminate\Contracts\Support\Htmlable|null
     {
-        return __('Clienți programați pentru reminder');
+        return __('Customers scheduled for follow-up');
     }
 
     public function table(Table $table): Table
@@ -57,16 +57,14 @@ class CustomerReturnsTableWidget extends BaseWidget
                         $days = today()->diffInDays(Carbon::parse($record->next_followup_at)->startOfDay(), false);
 
                         if ($days === 0) {
-                            return __('Astăzi');
+                            return __('Today');
                         }
 
-                        if ($days > 0) {
-                            return '−' . $days . ' ' . ($days === 1 ? __('zi') : __('zile'));
-                        }
+                        $count = abs($days);
+                        $sign = $days > 0 ? '−' : '+';
+                        $label = trans_choice('day count', $count, ['count' => $count]);
 
-                        $overdue = abs($days);
-
-                        return '+' . $overdue . ' ' . ($overdue === 1 ? __('zi') : __('zile'));
+                        return "\u{2068}{$sign} {$label}\u{2069}";
                     })
                     ->badge()
                     ->alignCenter()
@@ -99,11 +97,11 @@ class CustomerReturnsTableWidget extends BaseWidget
                     ->sortable(),
 
                 TextColumn::make('favourite_service')
-                    ->label(__('Serviciu')),
+                    ->label(__('Service')),
 
                 TextColumn::make('total_spent')
                     ->label(__('Status'))
-                    ->state(fn ($record): string => (string) ($record->followup_status_label ?? __('Necontactat')))
+                    ->state(fn ($record): string => __($record->followup_status_label ?? 'Uncontacted'))
                     ->description(function ($record): ?string {
                         if (! $record->followup_status_at) {
                             return null;
@@ -119,11 +117,11 @@ class CustomerReturnsTableWidget extends BaseWidget
                     ->label(__('Has booked'))
                     ->relationship('service', 'name'),
             ])
-            ->actionsColumnLabel(__('Acțiuni'))
+            ->actionsColumnLabel(__('Actions'))
             ->actions([
                 ActionGroup::make([
                     Action::make('send_sms')
-                        ->label(__('Trimite SMS'))
+                        ->label(__('Send SMS'))
                         ->action(fn ($record) => $this->applyFollowupAction(
                             recordId: (int) $record->id,
                             status: 'sms_sent',
@@ -131,7 +129,7 @@ class CustomerReturnsTableWidget extends BaseWidget
                             historyChannel: 'sms',
                         )),
                     Action::make('send_email')
-                        ->label(__('Trimite Email'))
+                        ->label(__('Send Email'))
                         ->action(fn ($record) => $this->applyFollowupAction(
                             recordId: (int) $record->id,
                             status: 'email_sent',
@@ -139,7 +137,7 @@ class CustomerReturnsTableWidget extends BaseWidget
                             historyChannel: 'email',
                         )),
                     Action::make('mark_called')
-                        ->label(__('Marchează ca apelat'))
+                        ->label(__('Mark as called'))
                         ->action(fn ($record) => $this->applyFollowupAction(
                             recordId: (int) $record->id,
                             status: 'called',
@@ -152,7 +150,7 @@ class CustomerReturnsTableWidget extends BaseWidget
                         ->color('gray')
                         ->action(static fn () => null),
                     Action::make('booking_completed')
-                        ->label(__('Programare realizată'))
+                        ->label(__('Appointment completed'))
                         ->action(fn ($record) => $this->applyFollowupAction(
                             recordId: (int) $record->id,
                             status: 'completed',
@@ -161,7 +159,7 @@ class CustomerReturnsTableWidget extends BaseWidget
                             closeWorkflow: true,
                         )),
                     Action::make('client_inactive')
-                        ->label(__('Client inactiv'))
+                        ->label(__('Inactive client'))
                         ->action(fn ($record) => $this->applyFollowupAction(
                             recordId: (int) $record->id,
                             status: 'inactive',
@@ -197,10 +195,10 @@ class CustomerReturnsTableWidget extends BaseWidget
                 'sr.phone as phone',
                 'sr.date as last_booking_date',
                 DB::raw("CASE customer_followups.status
-                    WHEN 'called' THEN 'Apelat'
-                    WHEN 'email_sent' THEN 'E-mail trimis'
-                    WHEN 'sms_sent' THEN 'SMS trimis'
-                    ELSE 'Necontactat'
+                    WHEN 'called' THEN 'Called'
+                    WHEN 'email_sent' THEN 'Email sent'
+                    WHEN 'sms_sent' THEN 'SMS sent'
+                    ELSE 'Uncontacted'
                 END as followup_status_label"),
                 DB::raw('COALESCE(customer_followups.last_action_at, customer_followups.scheduled_at) as followup_status_at'),
                 DB::raw('0 as total_spent'),
